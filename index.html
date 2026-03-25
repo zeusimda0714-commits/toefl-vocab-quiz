@@ -90,10 +90,11 @@
     background: none;
     border: 1px solid var(--border);
     color: var(--text-secondary);
-    padding: 8px 18px;
+    padding: 8px 14px;
     border-radius: 8px;
     cursor: pointer;
-    font-size: 0.9em;
+    font-size: 1.2em;
+    line-height: 1;
     transition: all 0.2s;
   }
   .back-btn:hover { border-color: var(--purple-accent); color: var(--purple-accent); }
@@ -707,19 +708,19 @@
     .report-stats { grid-template-columns: 1fr; }
     .sidebar { width: 260px; }
 
-    /* 퀴즈 제목 & 메뉴로 버튼 겹침 방지 */
+    /* 퀴즈 화면: 제목 가운데, 뒤로가기 우측 */
     .quiz-header {
-      flex-direction: column;
-      padding: 0 0 10px;
-      gap: 6px;
+      flex-direction: row;
+      justify-content: center;
+      padding: 12px 0 10px;
+      border-bottom: none;
     }
     .quiz-title {
       font-size: 1.1em;
-      order: 1;
     }
     .back-btn-wrap {
-      position: static;
-      order: 2;
+      position: absolute;
+      right: 0;
     }
   }
 </style>
@@ -789,7 +790,7 @@
   <div class="quiz-area" id="quizArea">
     <div class="quiz-header">
       <div class="quiz-title" id="quizTitle"></div>
-      <div class="back-btn-wrap"><button class="back-btn" onclick="goHome()">메뉴로</button></div>
+      <div class="back-btn-wrap"><button class="back-btn" onclick="goHome()" aria-label="뒤로가기">&#x2190;</button></div>
     </div>
     <div class="progress-wrap">
       <div class="progress-info">
