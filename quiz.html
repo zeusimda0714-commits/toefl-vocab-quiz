@@ -618,13 +618,39 @@
 
   /* Responsive */
   @media (max-width: 600px) {
-    .menu { grid-template-columns: 1fr; }
+    .menu { grid-template-columns: 1fr; margin-top: 10px; }
     .match-area { grid-template-columns: 1fr; }
     .question-word { font-size: 1.5em; }
     .spell-input-wrap { flex-direction: column; }
     .header h1 { font-size: 1.6em; }
+    .header p { font-size: 0.85em; }
     .report-stats { grid-template-columns: 1fr; }
     .sidebar { width: 260px; }
+
+    /* Day 뱃지 축소 */
+    .day-cloud {
+      margin-top: 16px;
+      margin-bottom: 6px;
+      padding: 8px 28px;
+    }
+    .day-cloud .day-subtitle {
+      font-size: 1.2em;
+    }
+
+    /* 퀴즈 제목 & 메뉴로 버튼 겹침 방지 */
+    .quiz-header {
+      flex-direction: column;
+      padding: 0 0 12px;
+      gap: 8px;
+    }
+    .quiz-title {
+      font-size: 1.15em;
+      order: 1;
+    }
+    .back-btn-wrap {
+      position: static;
+      order: 2;
+    }
   }
 </style>
 </head>
@@ -1174,6 +1200,7 @@ function checkType1(btn, selected, correct) {
 }
 
 function nextQuestion() {
+  clearCorrectEffects();
   currentIndex++;
   if (currentType === 1) showType1();
   else if (currentType === 3) showType3();
@@ -1468,6 +1495,11 @@ function escapeAttr(s) {
 }
 
 // ============ CORRECT POPUP + CONFETTI ============
+// 정답 효과 즉시 제거
+function clearCorrectEffects() {
+  document.querySelectorAll('.correct-popup, .confetti-container').forEach(el => el.remove());
+}
+
 function showCorrectEffect(wordText) {
   // Popup
   const popup = document.createElement('div');
