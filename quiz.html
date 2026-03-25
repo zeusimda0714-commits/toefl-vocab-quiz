@@ -135,6 +135,12 @@
     letter-spacing: 1px;
     margin-bottom: 16px;
   }
+  .question-label.match-label {
+    font-size: 1.05em;
+    margin-bottom: 0;
+    text-align: center;
+    padding: 8px 0;
+  }
   .question-word {
     font-size: 2em;
     font-weight: 700;
@@ -1200,7 +1206,7 @@ function showMatchRound() {
 
   const html = `
     <div class="question-card">
-      <div class="question-label">단어와 동의어를 매칭하세요 (${matchRound + 1} / ${matchTotalRounds} 라운드)</div>
+      <div class="question-label match-label">단어와 동의어를 매칭하세요 (${matchRound + 1} / ${matchTotalRounds} 라운드)</div>
     </div>
     <div class="match-area">
       <div class="match-col">
