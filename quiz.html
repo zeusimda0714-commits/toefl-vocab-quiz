@@ -77,14 +77,15 @@
   .quiz-area { display: none; }
   .quiz-header {
     display: flex;
-    justify-content: space-between;
+    justify-content: center;
     align-items: center;
+    position: relative;
     margin-bottom: 24px;
-    padding-left: 48px;
-    padding-bottom: 16px;
+    padding: 0 48px 16px;
     border-bottom: 1px solid var(--border);
   }
-  .quiz-title { font-size: 1.5em; font-weight: 700; color: var(--purple-deep); }
+  .quiz-title { font-size: 1.5em; font-weight: 700; color: var(--purple-deep); text-align: center; }
+  .back-btn-wrap { position: absolute; right: 0; }
   .back-btn {
     background: none;
     border: 1px solid var(--border);
@@ -684,7 +685,7 @@
   <div class="quiz-area" id="quizArea">
     <div class="quiz-header">
       <div class="quiz-title" id="quizTitle"></div>
-      <button class="back-btn" onclick="goHome()">메뉴로</button>
+      <div class="back-btn-wrap"><button class="back-btn" onclick="goHome()">메뉴로</button></div>
     </div>
     <div class="progress-wrap">
       <div class="progress-info">
