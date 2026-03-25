@@ -1287,7 +1287,7 @@ function showType3Question() {
     <div class="question-card">
       <div class="question-label">다음 의미에 해당하는 영단어를 입력하세요</div>
       <div class="question-word" style="font-size:1.5em;">${q.meaning}</div>
-      <div class="question-sub">동의어: ${q.synonyms.slice(0, 3).join(', ')}</div>
+      <div class="question-sub" style="color:var(--purple-accent); margin-top:8px;">동의어: ${q.synonyms.slice(0, 3).join(', ')}</div>
     </div>
     <div class="spell-input-wrap">
       <input type="text" class="spell-input" id="spellInput" placeholder="영단어를 입력하세요..." autocomplete="off" autocapitalize="off" onkeydown="if(event.key==='Enter')checkType3()">
