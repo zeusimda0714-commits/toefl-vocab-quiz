@@ -37,16 +37,33 @@
   }
   .container { max-width: 800px; margin: 0 auto; padding: 20px; }
 
+  /* Top bar (desktop) */
+  .mobile-topbar { display: none; }
+  .desktop-topbar {
+    display: flex;
+    align-items: center;
+    padding: 16px 24px;
+    border-bottom: 2px solid var(--border);
+    margin-bottom: 10px;
+  }
+  .desktop-topbar .topbar-logo {
+    font-size: 1.1em;
+    font-weight: 900;
+    color: var(--purple-dark);
+    letter-spacing: 0.5px;
+  }
+
   /* Header */
-  .header { text-align: center; padding: 40px 0 30px; }
-  .header h1 {
+  .header { text-align: center; padding: 20px 0 10px; }
+  .header h1 { display: none; }
+  .mobile-title {
+    display: block;
     font-size: 2.4em;
     font-weight: 900;
     color: var(--purple-dark);
     margin-bottom: 8px;
   }
   .header p { color: var(--text-secondary); font-size: 0.95em; }
-  .mobile-title { display: none; }
   .day-cloud-wrapper { text-align: center; }
 
   /* Menu */
@@ -492,7 +509,7 @@
   .hamburger {
     position: fixed;
     top: 18px;
-    left: 18px;
+    right: 18px;
     z-index: 1100;
     background: var(--purple-card);
     border: 1px solid var(--border);
@@ -606,16 +623,16 @@
     margin-top: 32px;
     margin-bottom: 10px;
     padding: 12px 36px;
-    background: var(--purple-card);
-    border: 2px solid var(--purple-mid);
+    background: var(--purple-deep);
+    border: 2px solid var(--purple-deep);
     border-radius: 50px;
-    box-shadow: 0 4px 16px rgba(126,87,194,0.12), inset 0 1px 2px rgba(255,255,255,0.6);
+    box-shadow: 0 4px 16px rgba(126,87,194,0.15);
     position: relative;
   }
   .day-cloud .day-subtitle {
     font-size: 1.6em;
     font-weight: 800;
-    color: var(--purple-deep);
+    color: #fff;
     letter-spacing: 1px;
   }
 
@@ -627,8 +644,9 @@
     body { font-size: 16px; }
     .container { padding: 8px 12px; }
 
-    /* 데스크톱 햄버거 숨김 */
+    /* 데스크톱 요소 숨김 */
     .hamburger { display: none !important; }
+    .desktop-topbar { display: none !important; }
 
     /* 모바일 상단 바 표시 */
     .mobile-topbar {
@@ -797,6 +815,10 @@
 </div>
 
 <div class="container">
+  <!-- Desktop Top Bar -->
+  <div class="desktop-topbar">
+    <div class="topbar-logo">TOEFL VOCA QUIZ</div>
+  </div>
   <!-- Header -->
   <div class="header" id="mainHeader">
     <h1>TOEFL VOCABULARY QUIZ</h1>
