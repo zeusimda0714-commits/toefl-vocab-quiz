@@ -1,0 +1,1501 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TOEFL Vocabulary Quiz</title>
+<style>
+  @font-face {
+    font-family: 'SUITE Variable';
+    font-weight: 300 900;
+    src: url('./SUITE-Variable-woff2/SUITE-Variable.woff2') format('woff2-variations');
+  }
+  :root {
+    --purple-light: #ece4f6;
+    --purple-bg: #f5f0fa;
+    --purple-card: #ffffff;
+    --purple-mid: #b39ddb;
+    --purple-accent: #7e57c2;
+    --purple-deep: #5e35b1;
+    --purple-dark: #4a148c;
+    --text-primary: #2d1654;
+    --text-secondary: #6a5a7a;
+    --text-muted: #9e8fb0;
+    --border: #ddd0ee;
+    --correct: #43a047;
+    --correct-bg: rgba(67,160,71,0.08);
+    --wrong: #e53935;
+    --wrong-bg: rgba(229,57,53,0.08);
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'SUITE Variable', 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-size: 18px;
+    background: var(--purple-bg);
+    color: var(--text-primary);
+    min-height: 100vh;
+  }
+  .container { max-width: 800px; margin: 0 auto; padding: 20px; }
+
+  /* Header */
+  .header { text-align: center; padding: 40px 0 30px; }
+  .header h1 {
+    font-size: 2.4em;
+    font-weight: 900;
+    color: var(--purple-dark);
+    margin-bottom: 8px;
+  }
+  .header p { color: var(--text-secondary); font-size: 0.95em; }
+
+  /* Menu */
+  .menu {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin: 30px 0;
+  }
+  .menu-card {
+    background: var(--purple-card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 28px 24px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-align: center;
+    box-shadow: 0 2px 8px rgba(94,53,177,0.06);
+  }
+  .menu-card:hover {
+    transform: translateY(-4px);
+    border-color: var(--purple-accent);
+    box-shadow: 0 8px 30px rgba(94,53,177,0.13);
+  }
+  .menu-card .icon { font-size: 2.2em; margin-bottom: 12px; }
+  .menu-card h3 { font-size: 1.1em; margin-bottom: 8px; color: var(--purple-dark); }
+  .menu-card p { font-size: 0.82em; color: #000; line-height: 1.5; }
+
+  /* Quiz Area */
+  .quiz-area { display: none; }
+  .quiz-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+    padding-left: 48px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--border);
+  }
+  .quiz-title { font-size: 1.5em; font-weight: 700; color: var(--purple-deep); }
+  .back-btn {
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--text-secondary);
+    padding: 8px 18px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.9em;
+    transition: all 0.2s;
+  }
+  .back-btn:hover { border-color: var(--purple-accent); color: var(--purple-accent); }
+
+  /* Progress */
+  .progress-wrap { margin-bottom: 28px; }
+  .progress-info {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 8px;
+    font-size: 0.85em;
+    color: var(--text-muted);
+  }
+  .progress-bar {
+    height: 6px;
+    background: var(--purple-light);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--purple-accent), var(--purple-deep));
+    border-radius: 3px;
+    transition: width 0.4s ease;
+  }
+
+  /* Question Card */
+  .question-card {
+    background: var(--purple-card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 36px 32px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 8px rgba(94,53,177,0.06);
+  }
+  .question-label {
+    font-size: 0.8em;
+    color: var(--purple-accent);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 16px;
+  }
+  .question-word {
+    font-size: 2em;
+    font-weight: 700;
+    color: var(--purple-dark);
+    margin-bottom: 8px;
+  }
+  .question-sub {
+    font-size: 1em;
+    color: var(--text-secondary);
+    margin-bottom: 0;
+  }
+
+  /* Options (Type 1, 4) */
+  .options { display: grid; gap: 12px; margin-top: 10px; }
+  .option-btn {
+    background: var(--purple-card);
+    border: 1px solid var(--border);
+    color: var(--text-primary);
+    padding: 16px 20px;
+    border-radius: 12px;
+    font-size: 1em;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: left;
+  }
+  .option-btn:hover:not(.disabled) {
+    border-color: var(--purple-accent);
+    background: var(--purple-light);
+  }
+  .option-btn.correct {
+    border-color: var(--correct);
+    background: var(--correct-bg);
+    color: var(--correct);
+  }
+  .option-btn.wrong {
+    border-color: var(--wrong);
+    background: var(--wrong-bg);
+    color: var(--wrong);
+  }
+  .option-btn.disabled { cursor: default; opacity: 0.6; }
+  .option-btn.disabled.correct { opacity: 1; }
+
+  /* Matching (Type 2) */
+  .match-area {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin-top: 10px;
+  }
+  .match-col h4 {
+    font-size: 0.85em;
+    color: var(--purple-accent);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 12px;
+    text-align: center;
+  }
+  .match-btn {
+    display: block;
+    width: 100%;
+    background: var(--purple-card);
+    border: 2px solid var(--border);
+    color: var(--text-primary);
+    padding: 14px 16px;
+    border-radius: 10px;
+    font-size: 0.95em;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-bottom: 10px;
+    text-align: center;
+  }
+  .match-btn:hover:not(.matched):not(.selected) {
+    border-color: var(--purple-accent);
+  }
+  .match-btn.selected {
+    border-color: var(--purple-accent);
+    background: rgba(126,87,194,0.1);
+    color: var(--purple-deep);
+  }
+  .match-btn.matched {
+    border-color: var(--correct);
+    background: var(--correct-bg);
+    color: var(--correct);
+    cursor: default;
+    opacity: 0.7;
+  }
+  .match-btn.wrong-flash {
+    border-color: var(--wrong);
+    background: var(--wrong-bg);
+    color: var(--wrong);
+  }
+
+  /* Spelling Input (Type 3) */
+  .spell-input-wrap {
+    margin-top: 20px;
+    display: flex;
+    gap: 12px;
+  }
+  .spell-input {
+    flex: 1;
+    background: #fff;
+    border: 2px solid var(--border);
+    color: var(--text-primary);
+    padding: 16px 20px;
+    border-radius: 12px;
+    font-size: 1.1em;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .spell-input:focus { border-color: var(--purple-accent); }
+  .spell-input.correct { border-color: var(--correct); color: var(--correct); }
+  .spell-input.wrong { border-color: var(--wrong); color: var(--wrong); }
+  .submit-btn {
+    background: linear-gradient(135deg, var(--purple-accent), var(--purple-deep));
+    border: none;
+    color: #fff;
+    padding: 16px 28px;
+    border-radius: 12px;
+    font-size: 1em;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.2s;
+    white-space: nowrap;
+  }
+  .submit-btn:hover { opacity: 0.85; }
+  .hint-text {
+    margin-top: 12px;
+    font-size: 0.9em;
+    color: var(--wrong);
+    min-height: 1.4em;
+  }
+
+  /* Sentence (Type 4) */
+  .sentence-text {
+    font-size: 1.15em;
+    line-height: 1.8;
+    color: var(--text-primary);
+    margin-bottom: 4px;
+  }
+  .sentence-text .blank {
+    display: inline-block;
+    min-width: 120px;
+    border-bottom: 2px dashed var(--purple-accent);
+    text-align: center;
+    color: var(--purple-deep);
+    font-weight: 600;
+    padding: 0 4px;
+  }
+  .sentence-translation {
+    font-size: 0.9em;
+    color: var(--text-muted);
+    margin-top: 8px;
+  }
+
+  /* Result */
+  .result-area {
+    display: none;
+    text-align: center;
+    padding: 40px 20px;
+  }
+  .result-score {
+    font-size: 4em;
+    font-weight: 800;
+    color: var(--purple-dark);
+    margin-bottom: 4px;
+  }
+  .result-label {
+    font-size: 1.1em;
+    color: var(--text-muted);
+    margin-bottom: 24px;
+  }
+  .result-message {
+    font-size: 1.3em;
+    color: var(--purple-deep);
+    margin-bottom: 28px;
+  }
+
+  /* Report card */
+  .report-card {
+    background: var(--purple-card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 24px;
+    margin-bottom: 28px;
+    box-shadow: 0 2px 8px rgba(94,53,177,0.06);
+    text-align: left;
+  }
+  .report-title {
+    font-size: 1em;
+    font-weight: 700;
+    color: var(--purple-deep);
+    margin-bottom: 16px;
+    text-align: center;
+  }
+  .report-stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 8px;
+  }
+  .report-stat {
+    text-align: center;
+    padding: 14px 8px;
+    background: var(--purple-light);
+    border-radius: 12px;
+  }
+  .report-stat .stat-value {
+    font-size: 1.8em;
+    font-weight: 800;
+    color: var(--purple-dark);
+  }
+  .report-stat .stat-label {
+    font-size: 0.75em;
+    color: var(--text-muted);
+    margin-top: 4px;
+  }
+  .report-stat.correct-stat .stat-value { color: var(--correct); }
+  .report-stat.wrong-stat .stat-value { color: var(--wrong); }
+
+  .result-btns { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+  .result-btn {
+    padding: 14px 32px;
+    border-radius: 12px;
+    font-size: 1em;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: none;
+  }
+  .result-btn.primary {
+    background: linear-gradient(135deg, var(--purple-accent), var(--purple-deep));
+    color: #fff;
+  }
+  .result-btn.secondary {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text-secondary);
+  }
+  .result-btn:hover { opacity: 0.85; transform: translateY(-2px); }
+
+  /* Review list */
+  .review-section {
+    margin-top: 24px;
+    text-align: left;
+  }
+  .review-section h3 {
+    color: var(--wrong);
+    font-size: 1em;
+    margin-bottom: 16px;
+    text-align: center;
+  }
+  .review-item {
+    background: var(--purple-card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 18px;
+    margin-bottom: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .review-word { color: var(--purple-dark); font-weight: 600; }
+  .review-meaning { color: var(--text-secondary); }
+  .review-synonym { color: var(--purple-accent); font-size: 0.85em; margin-top: 2px; }
+
+  /* Next button */
+  .next-btn {
+    display: none;
+    margin: 20px auto 0;
+    background: linear-gradient(135deg, var(--purple-accent), var(--purple-deep));
+    border: none;
+    color: #fff;
+    padding: 14px 36px;
+    border-radius: 12px;
+    font-size: 1em;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.2s;
+  }
+  .next-btn:hover { opacity: 0.85; }
+
+  /* Match score */
+  .match-score {
+    text-align: center;
+    margin-top: 16px;
+    font-size: 0.9em;
+    color: var(--text-muted);
+  }
+
+  /* Correct popup */
+  .correct-popup {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    pointer-events: none;
+    animation: popupFade 1.2s ease forwards;
+  }
+  .correct-popup .popup-text {
+    font-size: 2.2em;
+    font-weight: 800;
+    color: var(--correct);
+    text-shadow: 0 0 20px rgba(67,160,71,0.3);
+    margin-bottom: 4px;
+  }
+  .correct-popup .popup-word {
+    font-size: 1.1em;
+    color: var(--purple-dark);
+    opacity: 0.9;
+  }
+  @keyframes popupFade {
+    0% { opacity: 0; transform: scale(0.5); }
+    20% { opacity: 1; transform: scale(1.05); }
+    30% { opacity: 1; transform: scale(1); }
+    80% { opacity: 1; }
+    100% { opacity: 0; }
+  }
+
+  /* Confetti */
+  .confetti-container {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    pointer-events: none;
+    z-index: 999;
+    overflow: hidden;
+  }
+  .confetti {
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    border-radius: 2px;
+    animation: confettiFall 1.2s ease-out forwards;
+  }
+  @keyframes confettiFall {
+    0% { opacity: 1; transform: translateY(0) rotate(0deg) scale(1); }
+    100% { opacity: 0; transform: translateY(200px) rotate(720deg) scale(0.3); }
+  }
+
+  /* Hamburger & Sidebar */
+  .hamburger {
+    position: fixed;
+    top: 18px;
+    left: 18px;
+    z-index: 1100;
+    background: var(--purple-card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    width: 44px;
+    height: 44px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 2px 8px rgba(94,53,177,0.08);
+  }
+  .hamburger:hover { border-color: var(--purple-accent); }
+  .hamburger span {
+    display: block;
+    width: 20px;
+    height: 2px;
+    background: var(--purple-deep);
+    border-radius: 1px;
+    transition: all 0.3s;
+  }
+  .hamburger.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+  .hamburger.open span:nth-child(2) { opacity: 0; }
+  .hamburger.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+  .sidebar-overlay {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.3);
+    z-index: 1050;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s;
+  }
+  .sidebar-overlay.open { opacity: 1; pointer-events: auto; }
+
+  .sidebar {
+    position: fixed;
+    top: 0; left: -300px;
+    width: 280px;
+    height: 100vh;
+    background: var(--purple-card);
+    z-index: 1060;
+    transition: left 0.3s ease;
+    box-shadow: 4px 0 20px rgba(94,53,177,0.1);
+    overflow-y: auto;
+    border-right: 1px solid var(--border);
+  }
+  .sidebar.open { left: 0; }
+  .sidebar-header {
+    padding: 70px 20px 16px;
+    border-bottom: 1px solid var(--border);
+  }
+  .sidebar-header h2 {
+    font-size: 1.15em;
+    color: var(--purple-dark);
+  }
+  .sidebar-header p {
+    font-size: 0.85em;
+    color: var(--text-muted);
+    margin-top: 6px;
+  }
+  .sidebar-list {
+    padding: 8px 0;
+  }
+  .sidebar-item {
+    display: flex;
+    align-items: center;
+    padding: 13px 20px;
+    cursor: pointer;
+    transition: all 0.15s;
+    color: var(--text-primary);
+    font-size: 0.95em;
+    border-left: 3px solid transparent;
+  }
+  .sidebar-item:hover {
+    background: var(--purple-light);
+    border-left-color: var(--purple-accent);
+  }
+  .sidebar-item.active {
+    background: var(--purple-light);
+    border-left-color: var(--purple-deep);
+    color: var(--purple-deep);
+    font-weight: 600;
+  }
+  .sidebar-item .day-num {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    background: var(--purple-light);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 0.85em;
+    color: var(--purple-deep);
+    margin-right: 12px;
+    flex-shrink: 0;
+  }
+  .sidebar-item.active .day-num {
+    background: var(--purple-deep);
+    color: #fff;
+  }
+
+  /* Day subtitle cloud badge */
+  .day-cloud {
+    display: inline-block;
+    margin-top: 32px;
+    margin-bottom: 10px;
+    padding: 12px 36px;
+    background: var(--purple-card);
+    border: 2px solid var(--purple-mid);
+    border-radius: 50px;
+    box-shadow: 0 4px 16px rgba(126,87,194,0.12), inset 0 1px 2px rgba(255,255,255,0.6);
+    position: relative;
+  }
+  .day-cloud .day-subtitle {
+    font-size: 1.6em;
+    font-weight: 800;
+    color: var(--purple-deep);
+    letter-spacing: 1px;
+  }
+
+  /* Responsive */
+  @media (max-width: 600px) {
+    .menu { grid-template-columns: 1fr; }
+    .match-area { grid-template-columns: 1fr; }
+    .question-word { font-size: 1.5em; }
+    .spell-input-wrap { flex-direction: column; }
+    .header h1 { font-size: 1.6em; }
+    .report-stats { grid-template-columns: 1fr; }
+    .sidebar { width: 260px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Hamburger Button -->
+<div class="hamburger" id="hamburgerBtn" onclick="toggleSidebar()">
+  <span></span><span></span><span></span>
+</div>
+
+<!-- Sidebar Overlay -->
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
+<!-- Sidebar -->
+<div class="sidebar" id="sidebar">
+  <div class="sidebar-header">
+    <h2>TOEFL Vocabulary</h2>
+    <p>Day를 선택하세요</p>
+  </div>
+  <div class="sidebar-list" id="sidebarList"></div>
+</div>
+
+<div class="container">
+  <!-- Header -->
+  <div class="header" id="mainHeader">
+    <h1>TOEFL VOCABULARY QUIZ</h1>
+    <p>4가지 유형의 퀴즈를 통한 완벽한 암기</p>
+    <div class="day-cloud">
+      <div class="day-subtitle" id="daySubtitle">Day 1</div>
+    </div>
+  </div>
+
+  <!-- Main Menu -->
+  <div class="menu" id="mainMenu">
+    <div class="menu-card" onclick="startQuiz(1)">
+      <div class="icon">📝</div>
+      <h3>한글 의미 맞추기</h3>
+      <p>영단어를 보고 올바른 한글 의미 선택하기!</p>
+    </div>
+    <div class="menu-card" onclick="startQuiz(2)">
+      <div class="icon">🔗</div>
+      <h3>동의어 매칭</h3>
+      <p>영단어와 동의어 매칭하기!</p>
+    </div>
+    <div class="menu-card" onclick="startQuiz(3)">
+      <div class="icon">⌨️</div>
+      <h3>스펠링 테스트</h3>
+      <p>한글 의미를 보고 영단어 스펠링까지 입력하기!</p>
+    </div>
+    <div class="menu-card" onclick="startQuiz(4)">
+      <div class="icon">📖</div>
+      <h3>단어 찾기</h3>
+      <p>의미와 동의어로 단어 선택하기!</p>
+    </div>
+  </div>
+
+  <!-- Quiz Area -->
+  <div class="quiz-area" id="quizArea">
+    <div class="quiz-header">
+      <div class="quiz-title" id="quizTitle"></div>
+      <button class="back-btn" onclick="goHome()">메뉴로</button>
+    </div>
+    <div class="progress-wrap">
+      <div class="progress-info">
+        <span id="progressText">1 / 10</span>
+        <span id="scoreText">0점</span>
+      </div>
+      <div class="progress-bar">
+        <div class="progress-fill" id="progressFill"></div>
+      </div>
+    </div>
+    <div id="questionContainer"></div>
+    <button class="next-btn" id="nextBtn" onclick="nextQuestion()">다음</button>
+  </div>
+
+  <!-- Result Area -->
+  <div class="result-area" id="resultArea">
+    <div class="result-score" id="resultScore"></div>
+    <div class="result-label" id="resultLabel">정답률</div>
+    <div class="result-message" id="resultMessage"></div>
+    <div id="reportCard"></div>
+    <div class="result-btns">
+      <button class="result-btn primary" onclick="retryQuiz()">다시 풀기</button>
+      <button class="result-btn secondary" onclick="goHome()">메뉴로</button>
+    </div>
+    <div class="review-section" id="reviewSection"></div>
+  </div>
+</div>
+
+<script src="words_data.js"></script>
+<script>
+// ============ ACTIVE DATA ============
+let words = allDayWords[1]; // current day's words
+
+// ============ SIDEBAR & DAY NAVIGATION ============
+let currentDay = 1;
+
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+  document.getElementById('sidebarOverlay').classList.toggle('open');
+  document.getElementById('hamburgerBtn').classList.toggle('open');
+}
+
+function buildSidebar() {
+  const list = document.getElementById('sidebarList');
+  let html = '';
+  for (let d = 1; d <= 30; d++) {
+    const isActive = d === currentDay ? ' active' : '';
+    html += `<div class="sidebar-item${isActive}" onclick="selectDay(${d})">
+      <div class="day-num">${d}</div>
+      <span>Day ${d}</span>
+    </div>`;
+  }
+  list.innerHTML = html;
+}
+
+function selectDay(day) {
+  currentDay = day;
+  words = allDayWords[day];
+  document.getElementById('daySubtitle').textContent = `Day ${day}`;
+  document.querySelectorAll('.sidebar-item').forEach((el, i) => {
+    el.classList.toggle('active', i + 1 === day);
+  });
+  toggleSidebar();
+  goHome();
+}
+
+// Build sidebar on load
+buildSidebar();
+
+
+// ============ TYPE 4: Auto-generate fill-in-blank questions ============
+function generateSentences(dayWords) {
+  // Generate simple fill-in-blank by using the word in a template with 3 distractors
+  return dayWords.map(w => {
+    // Pick 3 random other words as distractors (similar length preferred)
+    const others = dayWords.filter(o => o.word !== w.word);
+    const shuffledOthers = others.sort(() => Math.random() - 0.5).slice(0, 3);
+    return {
+      word: w.word,
+      meaning: w.meaning,
+      synonyms: w.synonyms,
+      choices: [w.word, ...shuffledOthers.map(o => o.word)]
+    };
+  });
+}
+
+// ============ QUIZ STATE ============
+let currentType = 0;
+let currentIndex = 0;
+let score = 0;
+let totalQ = 0;
+let quizWords = [];
+let wrongList = [];
+let answered = false;
+
+// For matching
+let matchPairs = [];
+let selectedLeft = null;
+let matchedCount = 0;
+let matchRound = 0;
+let matchTotalRounds = 0;
+let matchScore = 0;
+let matchTotal = 0;
+let matchWrongList = [];
+
+// ============ WORD DISTRIBUTION ============
+// Distribute words: ~25 per type (1,3,4), max 2 types per word. Type 2 gets all.
+const wordPool = { 1: [], 3: [], 4: [] };
+const sentencePool = [];
+
+function distributeWords() {
+  // 매번 풀을 초기화
+  wordPool[1] = [];
+  wordPool[3] = [];
+  wordPool[4] = [];
+  sentencePool.length = 0;
+
+  const n = words.length;
+  const target = Math.min(25, n);
+  // 셔플하여 각 유형에 25개씩 배정 (단어 수가 25 미만이면 전체 사용)
+  const shuffled = shuffle(Array.from({length: n}, (_, i) => i));
+
+  if (n <= 25) {
+    wordPool[1] = [...shuffled];
+    wordPool[3] = [...shuffled];
+    wordPool[4] = [...shuffled];
+  } else {
+    // 겹침 구간을 랜덤화하여 매번 다른 조합
+    const s1 = Math.floor(Math.random() * Math.max(1, n - 25));
+    const s3 = Math.floor(Math.random() * Math.max(1, n - 25));
+    const s4 = Math.floor(Math.random() * Math.max(1, n - 25));
+    wordPool[1] = shuffled.slice(s1, s1 + target);
+    wordPool[3] = shuffled.slice(s3, s3 + target);
+    wordPool[4] = shuffled.slice(s4, s4 + target);
+    // 부족하면 앞에서 보충
+    if (wordPool[1].length < target) wordPool[1] = shuffled.slice(0, target);
+    if (wordPool[3].length < target) wordPool[3] = shuffled.slice(0, target);
+    if (wordPool[4].length < target) wordPool[4] = shuffled.slice(0, target);
+  }
+
+  // Build sentence pool for type 4 (auto-generate)
+  const type4Words = wordPool[4].map(i => words[i]);
+  const generated = generateSentences(type4Words);
+  sentencePool.push(...generated);
+}
+// ============ UTILS ============
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+distributeWords();
+
+// ============ HISTORY STATE ============
+let navigatingHistory = false;
+// Snapshot of quiz state to save/restore from history
+function saveSnapshot() {
+  return {
+    currentType, currentIndex, score, totalQ, answered,
+    quizWordIndices: quizWords.map(w => {
+      const src = currentType === 4 ? sentencePool : words;
+      return src.indexOf(w);
+    }),
+    wrongWordIndices: wrongList.map(w => words.indexOf(w)),
+    matchRound, matchScore, matchTotal, matchTotalRounds,
+    matchPairIndices: matchPairs.map(g => g.map(w => words.indexOf(w))),
+    matchWrongIndices: matchWrongList.map(w => words.indexOf(w)),
+  };
+}
+function restoreSnapshot(s) {
+  currentType = s.currentType;
+  currentIndex = s.currentIndex;
+  score = s.score;
+  totalQ = s.totalQ;
+  answered = s.answered;
+  const src = currentType === 4 ? sentencePool : words;
+  quizWords = s.quizWordIndices.map(i => src[i]);
+  wrongList = s.wrongWordIndices.map(i => words[i]);
+  matchRound = s.matchRound || 0;
+  matchScore = s.matchScore || 0;
+  matchTotal = s.matchTotal || 0;
+  matchTotalRounds = s.matchTotalRounds || 0;
+  matchPairs = (s.matchPairIndices || []).map(g => g.map(i => words[i]));
+  matchWrongList = (s.matchWrongIndices || []).map(i => words[i]);
+}
+
+function pushState(page, extra) {
+  if (navigatingHistory) return;
+  const state = { page, snapshot: saveSnapshot(), ...(extra || {}) };
+  history.pushState(state, '', '#' + page);
+}
+
+function showHome() {
+  document.getElementById('mainMenu').style.display = 'grid';
+  document.getElementById('mainHeader').style.display = 'block';
+  document.getElementById('quizArea').style.display = 'none';
+  document.getElementById('resultArea').style.display = 'none';
+}
+
+function goHome() {
+  showHome();
+  if (!navigatingHistory) history.pushState({ page: 'home' }, '', '#home');
+}
+
+// Browser back/forward support
+window.addEventListener('popstate', function(e) {
+  navigatingHistory = true;
+  if (!e.state || e.state.page === 'home') {
+    showHome();
+  } else if (e.state.page === 'result' && e.state.snapshot) {
+    restoreSnapshot(e.state.snapshot);
+    showResultView();
+  } else if (e.state.snapshot) {
+    restoreSnapshot(e.state.snapshot);
+    showQuizView();
+    // Re-render the current question
+    if (currentType === 1) showType1Question();
+    else if (currentType === 2) showMatchRound();
+    else if (currentType === 3) showType3Question();
+    else if (currentType === 4) showType4Question();
+  }
+  navigatingHistory = false;
+});
+history.replaceState({ page: 'home' }, '', '#home');
+
+// Show quiz chrome (header, progress) without resetting state
+function showQuizView() {
+  document.getElementById('mainMenu').style.display = 'none';
+  document.getElementById('mainHeader').style.display = 'none';
+  document.getElementById('resultArea').style.display = 'none';
+  document.getElementById('quizArea').style.display = 'block';
+  const titles = { 1:"📝 한글 의미 맞추기", 2:"🔗 동의어 매칭", 3:"⌨️ 스펠링 테스트", 4:"📖 단어 찾기" };
+  document.getElementById('quizTitle').textContent = titles[currentType];
+}
+
+// ============ START QUIZ ============
+function startQuiz(type) {
+  currentType = type;
+  currentIndex = 0;
+  score = 0;
+  wrongList = [];
+  answered = false;
+
+  // 매번 단어를 새로 분배하여 다른 조합 제공
+  distributeWords();
+  showQuizView();
+
+  if (type === 1) {
+    quizWords = shuffle(wordPool[1].map(i => words[i]));
+    totalQ = quizWords.length;
+    showType1();
+  } else if (type === 2) {
+    startMatching(); // uses all words
+  } else if (type === 3) {
+    quizWords = shuffle(wordPool[3].map(i => words[i]));
+    totalQ = quizWords.length;
+    showType3();
+  } else if (type === 4) {
+    quizWords = shuffle([...sentencePool]);
+    totalQ = quizWords.length;
+    showType4();
+  }
+}
+
+function retryQuiz() {
+  startQuiz(currentType);
+}
+
+// ============ UPDATE PROGRESS ============
+function updateProgress(cur, total, sc) {
+  document.getElementById('progressText').textContent = `${cur} / ${total}`;
+  document.getElementById('scoreText').textContent = `${sc}점`;
+  document.getElementById('progressFill').style.width = `${(cur / total) * 100}%`;
+}
+
+// ============ TYPE 1: Korean Meaning ============
+// Distractor pools grouped by ending pattern (어미 형태)
+const distractorByPattern = {
+  // ~하다 동사
+  "하다": [
+    "축소하다","방해하다","촉진하다","왜곡하다","전파하다","억제하다","변형하다","수반하다",
+    "유발하다","강화하다","연장하다","단축하다","포착하다","간과하다","파괴하다","구축하다",
+    "해석하다","분류하다","취소하다","양보하다","저항하다","탐구하다","묘사하다","극복하다",
+    "예측하다","반박하다","수용하다","거부하다","축적하다","통합하다","지속하다","중단하다",
+    "복원하다","훼손하다","전달하다","수집하다","비교하다","대체하다","선언하다","회피하다",
+    "접근하다","논의하다","출현하다","소멸하다","활용하다","보존하다","표현하다","발굴하다"
+  ],
+  // ~되다 동사
+  "되다": [
+    "성숙해지다","감소되다","증가되다","변형되다","왜곡되다","확산되다","축적되다","전환되다",
+    "강화되다","약화되다","포함되다","배제되다","통합되다","분리되다","활성화되다","고립되다"
+  ],
+  // ~시키다 동사
+  "시키다": [
+    "악화시키다","약화시키다","강화시키다","활성화시키다","둔화시키다","가속시키다",
+    "분산시키다","집중시키다","안정시키다","동요시키다","고무시키다","위축시키다"
+  ],
+  // ~ㄴ/은 짧은 형용사 (힘든, 멈춘 등)
+  "short_adj": [
+    "굳은","지친","묵은","깊은","넓은","좁은","짧은","긴","높은","낮은","밝은","어두운",
+    "거친","고른","무딘","날카로운","느린","빠른","무거운","가벼운","두꺼운","얇은",
+    "험한","약한","센","된","굵은","가는","쓴","단","큰","작은","잦은","드문",
+    "이른","늦은","옳은","틀린","다른","같은","헌","새","젊은","늙은","익은","설익은"
+  ],
+  // ~한 형용사 (확고한, 정당한 등)
+  "한": [
+    "모호한","명백한","미묘한","막대한","미미한","취약한","견고한","현저한","사소한",
+    "광범위한","유력한","빈약한","강건한","왕성한","빈번한","희박한","절실한","긴밀한",
+    "섬세한","치밀한","과감한","무난한","원활한","졸렬한","신선한","참신한","정밀한",
+    "소박한","고요한","순수한","탁월한","비범한","평범한","심각한","사소한","중대한"
+  ],
+  // ~적인 형용사 (인상적인, 의도적인 등)
+  "적인": [
+    "일시적인","영구적인","자발적인","잠정적인","독창적인","체계적인","산발적인",
+    "근본적인","부수적인","압도적인","점진적인","제한적인","필수적인","부차적인",
+    "치명적인","유익한","혁신적인","보수적인","주관적인","객관적인","잠재적인",
+    "실질적인","형식적인","본질적인","파괴적인","건설적인","생산적인","소모적인"
+  ],
+  // ~는/~이는 형용사 (눈에 띄는, 퍼지는 등)
+  "는": [
+    "쏟아지는","뻗어나는","감도는","스며드는","내리쬐는","솟아오르는","밀려드는",
+    "드러나는","사라지는","떠오르는","가라앉는","흘러가는","뒤따르는","앞서가는",
+    "돋보이는","두드러지는","넘쳐나는","사그라드는","맴도는","번져가는","스러지는"
+  ],
+  // ~의 형용사 (토착의, 전체의 등)
+  "의": [
+    "고유의","본래의","원초의","핵심의","표면의","내면의","근원의","외부의",
+    "내부의","중심의","주변의","기초의","상위의","하위의","전통의","현대의"
+  ],
+  // ~없는 형용사
+  "없는": [
+    "끝이 없는","견줄 데 없는","더할 나위 없는","비교할 수 없는","헤아릴 수 없는",
+    "막을 수 없는","거스를 수 없는","당해낼 수 없는","감당할 수 없는","돌이킬 수 없는"
+  ],
+  // ~운/~로운 형용사 (매끄러운 등)
+  "운": [
+    "부드러운","거무스름한","너그러운","아름다운","더러운","게으른","외로운","가파른",
+    "나른한","서투른","어지러운","시끄러운","조용한","느긋한","의젓한","담담한"
+  ],
+  // ~게 부사 (신속하게, 돌이킬 수 없게 등)
+  "게": [
+    "점진적으로","현저하게","암묵적으로","명시적으로","자발적으로","무분별하게",
+    "광범위하게","압도적으로","단계적으로","획기적으로","일관되게","불가피하게",
+    "대담하게","은밀하게","노골적으로","완강하게","미약하게","현저하게","막연하게"
+  ],
+  // ~로 부사 (반대로 등)
+  "로": [
+    "점차적으로","즉각적으로","궁극적으로","부분적으로","전반적으로","간헐적으로",
+    "지속적으로","일시적으로","필연적으로","근본적으로","피상적으로","순차적으로",
+    "동시적으로","자의적으로","타의적으로","자발적으로","인위적으로","필수적으로"
+  ],
+  // ~게도 부사 (몹시 놀랍게도 등)
+  "게도": [
+    "어이없게도","안타깝게도","다행스럽게도","의외로","뜻밖에도","공교롭게도",
+    "불행하게도","놀랍게도","흥미롭게도","유감스럽게도","당혹스럽게도","반갑게도"
+  ],
+  // ~라서/~서 부사 (잇따라서 등)
+  "라서": [
+    "이따금씩","번갈아서","연이어서","차례대로","잇달아서","거듭해서",
+    "끊임없이","간간이","줄줄이","하나하나","되풀이해서","거듭거듭"
+  ],
+  // 순수 명사 (결합, 윤곽, 기둥 등 - 짧은 명사)
+  "noun": [
+    "균열","잔재","격차","맥락","범주","절차","체계","원리","구조","양상",
+    "동향","추세","쟁점","함의","전환","속성","관점","기준","근거","토대",
+    "여파","정점","지표","유산","경향","논거","수단","요인","변수","전제",
+    "난관","파급","잔여","흐름","표본","본질","현상","갈등","개념","귀결"
+  ],
+  // ~이 아닌 (놀랄 일이 아닌 등)
+  "아닌": [
+    "대수롭지 않은","이상할 것 없는","당연시되는","예상된","뻔한","자연스러운",
+    "그럴 만한","충분히 가능한","짐작이 가는","예견된","불가피한","합당한"
+  ],
+  // 짧은 동사 (주다, 빌다, 올라가다 등 - ~하다가 아닌 동사)
+  "verb_short": [
+    "주다","빌다","잡다","놓다","열다","닫다","읽다","쓰다","걷다","뛰다",
+    "앉다","깨다","넣다","빼다","짓다","풀다","묶다","끊다","잇다","섞다",
+    "나누다","모으다","세우다","늘리다","줄이다","높이다","낮추다","밀다","당기다","기르다",
+    "올라가다","내려가다","돌아가다","들어가다","나아가다","뒤따르다","이끌다","쌓다","갈다","캐다"
+  ]
+};
+
+// Detect the ending pattern of a Korean meaning
+function getPattern(meaning) {
+  const m = meaning.split(';')[0].trim();
+
+  if (m.endsWith('게도')) return '게도';
+  if (m.endsWith('라서')) return '라서';
+  if (m.endsWith('시키다')) return '시키다';
+  if (m.endsWith('해지다') || m.endsWith('되다')) return '되다';
+  if (m.endsWith('하다')) return '하다';
+  if (m.endsWith('적인')) return '적인';
+  if (m.endsWith('없는')) return '없는';
+  if (m.endsWith('아닌')) return '아닌';
+  if (m.endsWith('러운') || m.endsWith('로운') || m.endsWith('스러운')) return '운';
+  if (m.endsWith('의')) return '의';
+  if (m.endsWith('한')) return '한';
+  if (m.endsWith('는')) return '는';
+  if (m.endsWith('게')) return '게';
+  if (m.endsWith('으로') || m.endsWith('로')) return '로';
+  if (m.endsWith('든') || m.endsWith('춘') || m.endsWith('른')) return 'short_adj';
+  if (m.length <= 4 && (m.endsWith('된') || m.endsWith('진') || m.endsWith('난'))) return 'short_adj';
+  // Catch all verbs ending in 다 (주다, 빌다, 올라가다 등)
+  if (m.endsWith('다')) return 'verb_short';
+  return 'noun';
+}
+
+function getDistractors(correctWord) {
+  let pattern = getPattern(correctWord.meaning);
+  // verb_short uses the same pool as 하다 verbs
+  const poolKey = (pattern === 'verb_short') ? 'verb_short' : pattern;
+  const pool = distractorByPattern[poolKey] || distractorByPattern['noun'];
+  // Gather same-pattern meanings from word list
+  const samePattern = words
+    .filter(w => w.word !== correctWord.word && getPattern(w.meaning) === pattern)
+    .map(w => w.meaning);
+  const combined = shuffle([...pool, ...samePattern]);
+  const seen = new Set();
+  // Exclude all sub-meanings of the correct answer
+  correctWord.meaning.split(';').forEach(m => seen.add(m.trim()));
+  seen.add(correctWord.meaning);
+  const result = [];
+  for (const m of combined) {
+    if (!seen.has(m)) { seen.add(m); result.push(m); }
+    if (result.length >= 3) break;
+  }
+  return result;
+}
+
+// showType1: push history then render
+function showType1() {
+  if (currentIndex >= quizWords.length) return showResult();
+  answered = false;
+  pushState('quiz-q');
+  showType1Question();
+}
+// Render only (used by history restore)
+function showType1Question() {
+  document.getElementById('nextBtn').style.display = 'none';
+  updateProgress(currentIndex + 1, totalQ, score);
+  const q = quizWords[currentIndex];
+  const wrongMeanings = getDistractors(q);
+  const options = shuffle([q.meaning, ...wrongMeanings]);
+  const html = `
+    <div class="question-card">
+      <div class="question-label">다음 단어의 한글 의미는?</div>
+      <div class="question-word">${q.word}</div>
+    </div>
+    <div class="options">
+      ${options.map((o, i) => `<button class="option-btn" onclick="checkType1(this, '${escapeStr(o)}', '${escapeStr(q.meaning)}')">${o}</button>`).join('')}
+    </div>
+  `;
+  document.getElementById('questionContainer').innerHTML = html;
+}
+
+function checkType1(btn, selected, correct) {
+  if (answered) return;
+  answered = true;
+  const btns = document.querySelectorAll('.option-btn');
+  btns.forEach(b => {
+    b.classList.add('disabled');
+    if (b.textContent === correct) b.classList.add('correct');
+  });
+  if (selected === correct) {
+    btn.classList.add('correct');
+    score++;
+    showCorrectEffect(quizWords[currentIndex].word);
+  } else {
+    btn.classList.add('wrong');
+    wrongList.push(quizWords[currentIndex]);
+  }
+  document.getElementById('scoreText').textContent = `${score}점`;
+  document.getElementById('nextBtn').style.display = 'block';
+}
+
+function nextQuestion() {
+  currentIndex++;
+  if (currentType === 1) showType1();
+  else if (currentType === 3) showType3();
+  else if (currentType === 4) showType4();
+}
+
+// ============ TYPE 2: Synonym Matching ============
+function startMatching() {
+  const shuffled = shuffle(words);
+  matchRound = 0;
+  matchScore = 0;
+  matchTotal = shuffled.length;
+  matchWrongList = [];
+
+  // Split into groups of 5
+  const groups = [];
+  for (let i = 0; i < shuffled.length; i += 5) {
+    groups.push(shuffled.slice(i, i + 5));
+  }
+  matchTotalRounds = groups.length;
+  matchPairs = groups;
+  showMatchRound();
+}
+
+function showMatchRound() {
+  if (matchRound >= matchTotalRounds) {
+    wrongList = matchWrongList;
+    score = matchScore;
+    totalQ = matchTotal;
+    return showResult();
+  }
+
+  pushState('quiz-match');
+  selectedLeft = null;
+  matchedCount = 0;
+  const group = matchPairs[matchRound];
+  const leftItems = group.map(w => ({ word: w.word, id: w.word }));
+  const rightItems = shuffle(group.map(w => ({ synonym: w.synonyms[0], id: w.word })));
+
+  const done = matchPairs.slice(0, matchRound).reduce((a, g) => a + g.length, 0);
+  updateProgress(done + group.length, matchTotal, matchScore);
+
+  const html = `
+    <div class="question-card">
+      <div class="question-label">단어와 동의어를 매칭하세요 (${matchRound + 1} / ${matchTotalRounds} 라운드)</div>
+    </div>
+    <div class="match-area">
+      <div class="match-col">
+        <h4>단어</h4>
+        ${leftItems.map(l => `<button class="match-btn" data-side="left" data-id="${escapeAttr(l.id)}" onclick="selectMatch(this)">${l.word}</button>`).join('')}
+      </div>
+      <div class="match-col">
+        <h4>동의어</h4>
+        ${rightItems.map(r => `<button class="match-btn" data-side="right" data-id="${escapeAttr(r.id)}" onclick="selectMatch(this)">${r.synonym}</button>`).join('')}
+      </div>
+    </div>
+    <div class="match-score" id="matchInfo">매칭: 0 / ${group.length}</div>
+  `;
+  document.getElementById('questionContainer').innerHTML = html;
+  document.getElementById('nextBtn').style.display = 'none';
+}
+
+function selectMatch(btn) {
+  if (btn.classList.contains('matched')) return;
+  const side = btn.dataset.side;
+  const id = btn.dataset.id;
+
+  if (side === 'left') {
+    document.querySelectorAll('.match-btn[data-side="left"]').forEach(b => {
+      if (!b.classList.contains('matched')) b.classList.remove('selected');
+    });
+    btn.classList.add('selected');
+    selectedLeft = { el: btn, id: id };
+  } else if (side === 'right' && selectedLeft) {
+    if (id === selectedLeft.id) {
+      // Correct match
+      btn.classList.add('matched');
+      selectedLeft.el.classList.add('matched');
+      selectedLeft.el.classList.remove('selected');
+      matchedCount++;
+      matchScore++;
+      showCorrectEffect(selectedLeft.id);
+      document.getElementById('matchInfo').textContent = `매칭: ${matchedCount} / ${matchPairs[matchRound].length}`;
+      selectedLeft = null;
+
+      if (matchedCount === matchPairs[matchRound].length) {
+        matchRound++;
+        setTimeout(() => showMatchRound(), 600);
+      }
+    } else {
+      // Wrong match
+      btn.classList.add('wrong-flash');
+      selectedLeft.el.classList.add('wrong-flash');
+      const w = words.find(w => w.word === selectedLeft.id);
+      if (w && !matchWrongList.includes(w)) matchWrongList.push(w);
+      const lb = selectedLeft.el;
+      setTimeout(() => {
+        btn.classList.remove('wrong-flash');
+        lb.classList.remove('wrong-flash');
+        lb.classList.remove('selected');
+      }, 500);
+      selectedLeft = null;
+    }
+  }
+}
+
+// ============ TYPE 3: Spelling ============
+function showType3() {
+  if (currentIndex >= quizWords.length) return showResult();
+  answered = false;
+  pushState('quiz-q');
+  showType3Question();
+}
+function showType3Question() {
+  document.getElementById('nextBtn').style.display = 'none';
+  updateProgress(currentIndex + 1, totalQ, score);
+  const q = quizWords[currentIndex];
+  const html = `
+    <div class="question-card">
+      <div class="question-label">다음 의미에 해당하는 영단어를 입력하세요</div>
+      <div class="question-word" style="font-size:1.5em;">${q.meaning}</div>
+      <div class="question-sub">동의어: ${q.synonyms.slice(0, 3).join(', ')}</div>
+    </div>
+    <div class="spell-input-wrap">
+      <input type="text" class="spell-input" id="spellInput" placeholder="영단어를 입력하세요..." autocomplete="off" autocapitalize="off" onkeydown="if(event.key==='Enter')checkType3()">
+      <button class="submit-btn" onclick="checkType3()">확인</button>
+    </div>
+    <div class="hint-text" id="hintText"></div>
+  `;
+  document.getElementById('questionContainer').innerHTML = html;
+  setTimeout(() => document.getElementById('spellInput').focus(), 100);
+}
+
+function checkType3() {
+  if (answered) return;
+  const input = document.getElementById('spellInput');
+  const q = quizWords[currentIndex];
+  const userAnswer = input.value.trim().toLowerCase();
+  const correct = q.word.toLowerCase();
+
+  answered = true;
+  if (userAnswer === correct) {
+    input.classList.add('correct');
+    input.value = q.word;
+    score++;
+    showCorrectEffect(q.word);
+  } else {
+    input.classList.add('wrong');
+    document.getElementById('hintText').innerHTML = `정답: <strong style="color:#4ade80">${q.word}</strong>`;
+    wrongList.push(q);
+  }
+  document.getElementById('scoreText').textContent = `${score}점`;
+  document.getElementById('nextBtn').style.display = 'block';
+}
+
+// ============ TYPE 4: Fill in the Blank ============
+function showType4() {
+  if (currentIndex >= quizWords.length) return showResult();
+  answered = false;
+  pushState('quiz-q');
+  showType4Question();
+}
+function showType4Question() {
+  document.getElementById('nextBtn').style.display = 'none';
+  updateProgress(currentIndex + 1, totalQ, score);
+  const q = quizWords[currentIndex];
+  const options = shuffle(q.choices);
+  // 동의어를 힌트로 표시, 한글 의미를 보여주고 영단어를 선택
+  const synHint = q.synonyms ? q.synonyms.slice(0,2).join(', ') : '';
+  const html = `
+    <div class="question-card">
+      <div class="question-label">다음 의미와 동의어에 해당하는 단어를 고르세요</div>
+      <div class="question-word" style="font-size:1.5em;">${q.meaning}</div>
+      <div class="question-sub" style="color:var(--purple-accent); margin-top:8px;">Synonym: ${synHint}</div>
+    </div>
+    <div class="options">
+      ${options.map(o => `<button class="option-btn" onclick="checkType4(this, '${escapeStr(o)}', '${escapeStr(q.word)}')">${o}</button>`).join('')}
+    </div>
+  `;
+  document.getElementById('questionContainer').innerHTML = html;
+}
+
+function checkType4(btn, selected, correct) {
+  if (answered) return;
+  answered = true;
+  const btns = document.querySelectorAll('.option-btn');
+  btns.forEach(b => {
+    b.classList.add('disabled');
+    if (b.textContent === correct) b.classList.add('correct');
+  });
+  if (selected === correct) {
+    btn.classList.add('correct');
+    score++;
+    showCorrectEffect(correct);
+  } else {
+    btn.classList.add('wrong');
+    const w = words.find(w => w.word === correct);
+    if (w) wrongList.push(w);
+  }
+  document.getElementById('scoreText').textContent = `${score}점`;
+  document.getElementById('nextBtn').style.display = 'block';
+}
+
+// ============ RESULT ============
+function showResult() {
+  pushState('result');
+  showResultView();
+}
+function showResultView() {
+  document.getElementById('mainMenu').style.display = 'none';
+  document.getElementById('mainHeader').style.display = 'none';
+  document.getElementById('quizArea').style.display = 'none';
+  document.getElementById('resultArea').style.display = 'block';
+
+  const pct = Math.round((score / totalQ) * 100);
+  const wrongCount = totalQ - score;
+  const wrongPct = Math.round((wrongCount / totalQ) * 100);
+
+  document.getElementById('resultScore').textContent = `${pct}%`;
+  document.getElementById('resultLabel').textContent = '정답률';
+
+  // Quiz type name
+  const typeNames = { 1:"한글 의미 맞추기", 2:"동의어 매칭", 3:"스펠링 테스트", 4:"단어 찾기" };
+
+  let msg = '';
+  if (pct === 100) msg = "완벽합니다! 모든 단어를 마스터했어요!";
+  else if (pct >= 80) msg = "훌륭해요! 거의 다 외웠습니다!";
+  else if (pct >= 60) msg = "좋아요! 조금만 더 복습하면 됩니다.";
+  else if (pct >= 40) msg = "괜찮아요, 틀린 단어를 집중적으로 복습하세요.";
+  else msg = "더 열심히 복습해봐요! 화이팅!";
+  document.getElementById('resultMessage').textContent = msg;
+
+  // Report card
+  const reportHtml = `
+    <div class="report-card">
+      <div class="report-title">${typeNames[currentType] || ''} 결과 리포트</div>
+      <div class="report-stats">
+        <div class="report-stat">
+          <div class="stat-value">${totalQ}</div>
+          <div class="stat-label">총 문항</div>
+        </div>
+        <div class="report-stat correct-stat">
+          <div class="stat-value">${score}</div>
+          <div class="stat-label">정답</div>
+        </div>
+        <div class="report-stat wrong-stat">
+          <div class="stat-value">${wrongCount}</div>
+          <div class="stat-label">오답 (${wrongPct}%)</div>
+        </div>
+      </div>
+    </div>
+  `;
+  document.getElementById('reportCard').innerHTML = reportHtml;
+
+  // Wrong word review
+  let reviewHtml = '';
+  // Deduplicate wrong list
+  const seen = new Set();
+  const uniqueWrong = [];
+  wrongList.forEach(w => {
+    if (!seen.has(w.word)) { seen.add(w.word); uniqueWrong.push(w); }
+  });
+
+  if (uniqueWrong.length > 0) {
+    reviewHtml = `<h3>틀린 단어 (${uniqueWrong.length}개)</h3>`;
+    uniqueWrong.forEach(w => {
+      reviewHtml += `
+        <div class="review-item">
+          <div>
+            <div class="review-word">${w.word}</div>
+            <div class="review-synonym">${w.synonyms.slice(0, 3).join(', ')}</div>
+          </div>
+          <div class="review-meaning">${w.meaning}</div>
+        </div>
+      `;
+    });
+  }
+  document.getElementById('reviewSection').innerHTML = reviewHtml;
+}
+
+// ============ HELPERS ============
+function escapeStr(s) {
+  return s.replace(/'/g, "\\'").replace(/"/g, "&quot;");
+}
+function escapeAttr(s) {
+  return s.replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+}
+
+// ============ CORRECT POPUP + CONFETTI ============
+function showCorrectEffect(wordText) {
+  // Popup
+  const popup = document.createElement('div');
+  popup.className = 'correct-popup';
+  popup.innerHTML = `<div class="popup-text">정답!</div><div class="popup-word">${wordText}</div>`;
+  document.body.appendChild(popup);
+  setTimeout(() => popup.remove(), 1300);
+
+  // Confetti
+  const container = document.createElement('div');
+  container.className = 'confetti-container';
+  document.body.appendChild(container);
+
+  const colors = ['#4ade80','#667eea','#f472b6','#facc15','#fb923c','#a78bfa','#38bdf8','#34d399'];
+  const cx = window.innerWidth / 2;
+  const cy = window.innerHeight / 2;
+
+  for (let i = 0; i < 40; i++) {
+    const piece = document.createElement('div');
+    piece.className = 'confetti';
+    piece.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+    piece.style.left = (cx + (Math.random() - 0.5) * 200) + 'px';
+    piece.style.top = (cy + (Math.random() - 0.5) * 100) + 'px';
+    const angle = Math.random() * Math.PI * 2;
+    const dist = 80 + Math.random() * 120;
+    const dx = Math.cos(angle) * dist;
+    const dy = Math.sin(angle) * dist - 60;
+    piece.style.animation = 'none';
+    piece.offsetHeight; // reflow
+    piece.style.cssText += `
+      left: ${cx + (Math.random()-0.5)*60}px;
+      top: ${cy + (Math.random()-0.5)*40}px;
+      width: ${5 + Math.random()*6}px;
+      height: ${5 + Math.random()*6}px;
+      border-radius: ${Math.random() > 0.5 ? '50%' : '2px'};
+      animation: confettiBurst_${i} 1s ease-out forwards;
+    `;
+    // Dynamic keyframes per piece
+    const style = document.createElement('style');
+    style.textContent = `
+      @keyframes confettiBurst_${i} {
+        0% { opacity:1; transform: translate(0,0) rotate(0deg) scale(1); }
+        100% { opacity:0; transform: translate(${dx}px,${dy}px) rotate(${360+Math.random()*360}deg) scale(0.2); }
+      }
+    `;
+    document.head.appendChild(style);
+    container.appendChild(piece);
+    setTimeout(() => style.remove(), 1300);
+  }
+  setTimeout(() => container.remove(), 1300);
+}
+</script>
+</body>
+</html>
