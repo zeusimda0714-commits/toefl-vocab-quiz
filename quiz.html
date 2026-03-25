@@ -47,6 +47,7 @@
   }
   .header p { color: var(--text-secondary); font-size: 0.95em; }
   .mobile-title { display: none; }
+  .day-cloud-wrapper { text-align: center; }
 
   /* Menu */
   .menu {
@@ -663,9 +664,10 @@
       border-radius: 2px;
     }
 
-    /* 헤더: 상단 고정 */
+    /* 헤더: 상단 */
     .header {
       padding: 10px 0 0;
+      flex-shrink: 0;
     }
     .header h1 { display: none; }
     .mobile-title {
@@ -682,10 +684,10 @@
       margin-bottom: 0;
     }
 
-    /* Day 뱃지: 설명글과 유형 박스의 가운데 */
+    /* Day 뱃지: 보라 배경 + 흰 글자 */
     .day-cloud {
-      margin-top: auto;
-      margin-bottom: auto;
+      margin-top: 0;
+      margin-bottom: 0;
       padding: 8px 28px;
       background: var(--purple-deep);
       border-color: var(--purple-deep);
@@ -695,6 +697,14 @@
       color: #fff;
     }
 
+    /* Day 뱃지를 설명글과 메뉴 사이 가운데에 배치하기 위한 spacer */
+    .day-cloud-wrapper {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex: 1;
+    }
+
     /* 첫 화면 전체를 화면 안에 맞춤 */
     .container {
       display: flex;
@@ -702,13 +712,13 @@
       min-height: calc(100dvh - 50px);
     }
 
-    /* 퀴즈 유형 카드: 2x2 그리드, 하단 배치 */
+    /* 퀴즈 유형 카드: 2x2, 하단 고정 */
     .menu {
       grid-template-columns: 1fr 1fr;
       gap: 12px;
-      margin-top: auto;
-      margin-bottom: 16px;
+      margin: 0 0 16px;
       padding: 0 4px;
+      flex-shrink: 0;
     }
     .menu-card {
       padding: 18px 12px;
@@ -792,6 +802,8 @@
     <h1>TOEFL VOCABULARY QUIZ</h1>
     <h2 class="mobile-title">THE TOEFL LAB</h2>
     <p>4가지 유형의 퀴즈를 통한 완벽한 암기</p>
+  </div>
+  <div class="day-cloud-wrapper" id="dayCloudWrapper">
     <div class="day-cloud">
       <div class="day-subtitle" id="daySubtitle">Day 1</div>
     </div>
