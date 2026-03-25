@@ -42,6 +42,7 @@
   .desktop-topbar {
     display: flex;
     align-items: center;
+    justify-content: space-between;
     padding: 16px 24px;
     border-bottom: 2px solid var(--border);
     margin-bottom: 10px;
@@ -51,6 +52,20 @@
     font-weight: 900;
     color: var(--purple-dark);
     letter-spacing: 0.5px;
+  }
+  .desktop-topbar .topbar-hamburger {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    cursor: pointer;
+    padding: 6px;
+  }
+  .desktop-topbar .topbar-hamburger span {
+    display: block;
+    width: 22px;
+    height: 2.5px;
+    background: var(--purple-deep);
+    border-radius: 2px;
   }
 
   /* Header */
@@ -507,6 +522,7 @@
 
   /* Hamburger & Sidebar */
   .hamburger {
+    display: none;
     position: fixed;
     top: 18px;
     right: 18px;
@@ -516,7 +532,6 @@
     border-radius: 10px;
     width: 44px;
     height: 44px;
-    display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
@@ -715,28 +730,18 @@
       color: #fff;
     }
 
-    /* Day 뱃지를 설명글과 메뉴 사이 가운데에 배치하기 위한 spacer */
+    /* Day 뱃지: 설명글 바로 아래 */
     .day-cloud-wrapper {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex: 1;
+      text-align: center;
+      margin: 12px 0 16px;
     }
 
-    /* 첫 화면 전체를 화면 안에 맞춤 */
-    .container {
-      display: flex;
-      flex-direction: column;
-      min-height: calc(100dvh - 50px);
-    }
-
-    /* 퀴즈 유형 카드: 2x2, 하단 고정 */
+    /* 퀴즈 유형 카드: 2x2 */
     .menu {
       grid-template-columns: 1fr 1fr;
       gap: 12px;
       margin: 0 0 16px;
       padding: 0 4px;
-      flex-shrink: 0;
     }
     .menu-card {
       padding: 18px 12px;
@@ -770,12 +775,12 @@
     .report-stats { grid-template-columns: 1fr; }
     .sidebar { width: 260px; }
 
-    /* 퀴즈 화면: 제목 가운데, 뒤로가기 우측 */
+    /* 퀴즈 화면: 제목 가운데, 뒤로가기 우측, 경계선 */
     .quiz-header {
       flex-direction: row;
       justify-content: center;
       padding: 12px 0 10px;
-      border-bottom: none;
+      border-bottom: 1px solid var(--border);
     }
     .quiz-title {
       font-size: 1.1em;
@@ -818,6 +823,9 @@
   <!-- Desktop Top Bar -->
   <div class="desktop-topbar">
     <div class="topbar-logo">TOEFL VOCA QUIZ</div>
+    <div class="topbar-hamburger" onclick="toggleSidebar()">
+      <span></span><span></span><span></span>
+    </div>
   </div>
   <!-- Header -->
   <div class="header" id="mainHeader">
@@ -1058,6 +1066,7 @@ function pushState(page, extra) {
 function showHome() {
   document.getElementById('mainMenu').style.display = 'grid';
   document.getElementById('mainHeader').style.display = 'block';
+  document.getElementById('dayCloudWrapper').style.display = '';
   document.getElementById('quizArea').style.display = 'none';
   document.getElementById('resultArea').style.display = 'none';
 }
@@ -1100,6 +1109,7 @@ history.replaceState({ page: 'home' }, '', '#home');
 function showQuizView() {
   document.getElementById('mainMenu').style.display = 'none';
   document.getElementById('mainHeader').style.display = 'none';
+  document.getElementById('dayCloudWrapper').style.display = 'none';
   document.getElementById('resultArea').style.display = 'none';
   document.getElementById('quizArea').style.display = 'block';
   const titles = { 1:"📝 한글 의미 맞추기", 2:"🔗 동의어 매칭", 3:"⌨️ 스펠링 테스트", 4:"📖 단어 찾기" };
