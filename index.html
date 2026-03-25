@@ -116,7 +116,6 @@
     position: relative;
     margin-bottom: 24px;
     padding: 0 48px 16px;
-    border-bottom: 1px solid var(--border);
   }
   .quiz-title { font-size: 1.5em; font-weight: 700; color: var(--purple-deep); text-align: center; }
   .back-btn-wrap { position: absolute; right: 0; }
@@ -775,12 +774,11 @@
     .report-stats { grid-template-columns: 1fr; }
     .sidebar { width: 260px; }
 
-    /* 퀴즈 화면: 제목 가운데, 뒤로가기 우측, 경계선 */
+    /* 퀴즈 화면: 제목 가운데, 뒤로가기 우측 */
     .quiz-header {
       flex-direction: row;
       justify-content: center;
       padding: 12px 0 10px;
-      border-bottom: 1px solid var(--border);
     }
     .quiz-title {
       font-size: 1.1em;
@@ -796,7 +794,7 @@
 
 <!-- Mobile Top Bar (모바일 전용) -->
 <div class="mobile-topbar" id="mobileTopbar">
-  <div class="mobile-logo">TOEFL VOCA QUIZ</div>
+  <div class="mobile-logo" onclick="goHome()" style="cursor:pointer;">TOEFL VOCA QUIZ</div>
   <div class="mobile-hamburger" onclick="toggleSidebar()">
     <span></span><span></span><span></span>
   </div>
@@ -821,7 +819,7 @@
 
 <!-- Desktop Top Bar (container 밖, 전체 너비) -->
 <div class="desktop-topbar">
-  <div class="topbar-logo">TOEFL VOCA QUIZ</div>
+  <div class="topbar-logo" onclick="goHome()" style="cursor:pointer;">TOEFL VOCA QUIZ</div>
   <div class="topbar-hamburger" onclick="toggleSidebar()">
     <span></span><span></span><span></span>
   </div>
