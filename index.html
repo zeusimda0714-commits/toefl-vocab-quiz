@@ -137,6 +137,8 @@
   }
   .question-label.match-label {
     font-size: 1.05em;
+    font-weight: 600;
+    color: var(--purple-deep);
     margin-bottom: 0;
     text-align: center;
     padding: 8px 0;
@@ -1127,15 +1129,16 @@ function showType1Question() {
   document.getElementById('nextBtn').style.display = 'none';
   updateProgress(currentIndex + 1, totalQ, score);
   const q = quizWords[currentIndex];
-  const wrongMeanings = getDistractors(q);
-  const options = shuffle([q.meaning, ...wrongMeanings]);
+  const correctDisplay = firstMeaning(q.meaning);
+  const wrongMeanings = getDistractors(q).map(m => firstMeaning(m));
+  const options = shuffle([correctDisplay, ...wrongMeanings]);
   const html = `
     <div class="question-card">
       <div class="question-label">다음 단어의 한글 의미는?</div>
       <div class="question-word">${q.word}</div>
     </div>
     <div class="options">
-      ${options.map((o, i) => `<button class="option-btn" onclick="checkType1(this, '${escapeStr(o)}', '${escapeStr(q.meaning)}')">${o}</button>`).join('')}
+      ${options.map((o, i) => `<button class="option-btn" onclick="checkType1(this, '${escapeStr(o)}', '${escapeStr(correctDisplay)}')">${o}</button>`).join('')}
     </div>
   `;
   document.getElementById('questionContainer').innerHTML = html;
@@ -1443,6 +1446,11 @@ function showResultView() {
 }
 
 // ============ HELPERS ============
+// 의미에서 첫 번째 뜻만 추출 (;, / 구분자 기준)
+function firstMeaning(m) {
+  return m.split(/[;\/]/)[0].trim();
+}
+
 function escapeStr(s) {
   return s.replace(/'/g, "\\'").replace(/"/g, "&quot;");
 }
