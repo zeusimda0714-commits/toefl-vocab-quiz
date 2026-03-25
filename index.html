@@ -890,7 +890,15 @@ function showHome() {
 
 function goHome() {
   showHome();
-  if (!navigatingHistory) history.pushState({ page: 'home' }, '', '#home');
+  // 퀴즈 상태 초기화 — 다시 들어가면 첫 문제부터 시작
+  currentIndex = 0;
+  score = 0;
+  wrongList = [];
+  answered = false;
+  matchRound = 0;
+  matchScore = 0;
+  matchWrongList = [];
+  if (!navigatingHistory) history.replaceState({ page: 'home' }, '', '#home');
 }
 
 // Browser back/forward support
