@@ -618,33 +618,53 @@
 
   /* Responsive */
   @media (max-width: 600px) {
-    .menu { grid-template-columns: 1fr; margin-top: 10px; }
-    .match-area { grid-template-columns: 1fr; }
-    .question-word { font-size: 1.5em; }
-    .spell-input-wrap { flex-direction: column; }
-    .header h1 { font-size: 1.6em; }
-    .header p { font-size: 0.85em; }
-    .report-stats { grid-template-columns: 1fr; }
-    .sidebar { width: 260px; }
+    body { font-size: 16px; }
+    .container { padding: 10px 14px; }
+
+    /* 헤더: 삼선 아이콘과 겹침 방지 + 컴팩트 배치 */
+    .header { padding: 50px 0 8px; }
+    .header h1 { font-size: 1.35em; margin-bottom: 4px; }
+    .header p { font-size: 0.78em; margin-bottom: 0; }
 
     /* Day 뱃지 축소 */
     .day-cloud {
-      margin-top: 16px;
-      margin-bottom: 6px;
-      padding: 8px 28px;
+      margin-top: 10px;
+      margin-bottom: 4px;
+      padding: 6px 22px;
     }
     .day-cloud .day-subtitle {
-      font-size: 1.2em;
+      font-size: 1em;
     }
+
+    /* 퀴즈 유형 카드: 2x2 그리드, 컴팩트 */
+    .menu {
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin: 10px 0;
+    }
+    .menu-card {
+      padding: 14px 10px;
+      border-radius: 12px;
+    }
+    .menu-card .icon { font-size: 1.6em; margin-bottom: 6px; }
+    .menu-card h3 { font-size: 0.85em; margin-bottom: 4px; }
+    .menu-card p { font-size: 0.68em; line-height: 1.4; }
+
+    /* 퀴즈 화면 */
+    .match-area { grid-template-columns: 1fr; }
+    .question-word { font-size: 1.3em; }
+    .spell-input-wrap { flex-direction: column; }
+    .report-stats { grid-template-columns: 1fr; }
+    .sidebar { width: 260px; }
 
     /* 퀴즈 제목 & 메뉴로 버튼 겹침 방지 */
     .quiz-header {
       flex-direction: column;
-      padding: 0 0 12px;
-      gap: 8px;
+      padding: 0 0 10px;
+      gap: 6px;
     }
     .quiz-title {
-      font-size: 1.15em;
+      font-size: 1.1em;
       order: 1;
     }
     .back-btn-wrap {
