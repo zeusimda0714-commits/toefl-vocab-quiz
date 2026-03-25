@@ -938,17 +938,63 @@ buildSidebar();
 
 
 // ============ TYPE 4: Auto-generate fill-in-blank questions ============
+// 영단어 품사별 오답 풀 (단어 찾기 유형용)
+const engDistractorPools = {
+  verb: [
+    "diminish","amplify","dissolve","accelerate","prohibit","fluctuate","integrate","cultivate",
+    "penetrate","accumulate","deteriorate","reinforce","disperse","navigate","converge","terminate",
+    "stimulate","replicate","inaugurate","consolidate","alleviate","exacerbate","illuminate","fabricate",
+    "obliterate","circumvent","perpetuate","dismantle","articulate","commemorate","substantiate","vindicate"
+  ],
+  adj: [
+    "prevalent","volatile","ambiguous","meticulous","rudimentary","obsolete","pristine","sporadic",
+    "ubiquitous","erratic","lucrative","plausible","detrimental","formidable","negligible","autonomous",
+    "inherent","plausible","exquisite","tenacious","superficial","pragmatic","resilient","conspicuous",
+    "precarious","stringent","versatile","mundane","prolific","imminent","profound","substantial"
+  ],
+  noun: [
+    "paradigm","threshold","catalyst","trajectory","periphery","remnant","spectrum","surplus",
+    "vicinity","endeavor","impediment","proliferation","ramification","anecdote","chronicle","synopsis",
+    "anomaly","hypothesis","infrastructure","jurisdiction","criterion","symposium","predecessor","conundrum",
+    "phenomenon","apparatus","consensus","discrepancy","equilibrium","habitat","magnitude","incentive"
+  ],
+  adv: [
+    "predominantly","subsequently","inevitably","simultaneously","sporadically","profoundly","explicitly",
+    "inadvertently","inherently","perpetually","substantially","marginally","meticulously","presumably",
+    "emphatically","intermittently","unequivocally","provisionally","paradoxically","exponentially",
+    "categorically","conspicuously","indiscriminately","disproportionately","chronologically","fundamentally"
+  ]
+};
+
+// 한글 의미로 영단어 품사 판별
+function getEngPOS(meaning) {
+  const m = meaning.split(/[;\/]/)[0].trim();
+  if (m.endsWith('하다') || m.endsWith('되다') || m.endsWith('시키다') || m.endsWith('다')) return 'verb';
+  if (m.endsWith('적인') || m.endsWith('한') || m.endsWith('는') || m.endsWith('의') ||
+      m.endsWith('든') || m.endsWith('운') || m.endsWith('없는') || m.endsWith('춘') ||
+      m.endsWith('아닌') || m.endsWith('른')) return 'adj';
+  if (m.endsWith('게') || m.endsWith('로') || m.endsWith('게도') || m.endsWith('라서')) return 'adv';
+  return 'noun';
+}
+
 function generateSentences(dayWords) {
-  // Generate simple fill-in-blank by using the word in a template with 3 distractors
   return dayWords.map(w => {
-    // Pick 3 random other words as distractors (similar length preferred)
-    const others = dayWords.filter(o => o.word !== w.word);
-    const shuffledOthers = others.sort(() => Math.random() - 0.5).slice(0, 3);
+    const pos = getEngPOS(w.meaning);
+    const pool = engDistractorPools[pos] || engDistractorPools.noun;
+    // 같은 품사의 단어들에서 오답 선택 (같은 Day 단어 + 외부 풀)
+    const samePOS = dayWords.filter(o => o.word !== w.word && getEngPOS(o.meaning) === pos).map(o => o.word);
+    const combined = [...pool, ...samePOS].sort(() => Math.random() - 0.5);
+    const seen = new Set([w.word.toLowerCase()]);
+    const distractors = [];
+    for (const d of combined) {
+      if (!seen.has(d.toLowerCase())) { seen.add(d.toLowerCase()); distractors.push(d); }
+      if (distractors.length >= 3) break;
+    }
     return {
       word: w.word,
       meaning: w.meaning,
       synonyms: w.synonyms,
-      choices: [w.word, ...shuffledOthers.map(o => o.word)]
+      choices: [w.word, ...distractors]
     };
   });
 }
