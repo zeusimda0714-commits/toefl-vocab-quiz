@@ -1703,10 +1703,18 @@ function startMatching() {
   matchTotal = shuffled.length;
   matchWrongList = [];
 
-  // Split into groups of 5
+  // 균등 분배: 5개씩 나누되 나머지를 앞 그룹에 1개씩 분산
+  const groupSize = 5;
+  const numGroups = Math.ceil(shuffled.length / groupSize);
   const groups = [];
-  for (let i = 0; i < shuffled.length; i += 5) {
-    groups.push(shuffled.slice(i, i + 5));
+  let idx = 0;
+  for (let g = 0; g < numGroups; g++) {
+    // 남은 단어를 남은 그룹 수로 나눠 이번 그룹 크기 결정
+    const remaining = shuffled.length - idx;
+    const remainingGroups = numGroups - g;
+    const thisSize = Math.ceil(remaining / remainingGroups);
+    groups.push(shuffled.slice(idx, idx + thisSize));
+    idx += thisSize;
   }
   matchTotalRounds = groups.length;
   matchPairs = groups;
@@ -1716,8 +1724,10 @@ function startMatching() {
 function showMatchRound() {
   if (matchRound >= matchTotalRounds) {
     wrongList = matchWrongList;
-    score = matchScore;
     totalQ = matchTotal;
+    // 정답 = 전체 - 틀린 적 있는 단어 수 (중복 제거)
+    const wrongSet = new Set(matchWrongList.map(w => w.word));
+    score = matchTotal - wrongSet.size;
     return showResult();
   }
 
