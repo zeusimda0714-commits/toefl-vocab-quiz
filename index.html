@@ -2028,28 +2028,45 @@ function firstMeaning(m) {
 }
 
 // ============ USER DATA (localStorage) ============
-function getUserDataKey() {
-  // Firebase auth에서 UID를 가져올 수 없으므로 이메일 기반 키 사용
-  const el = document.getElementById('sidebarEmail');
-  return 'toefllab_' + (el ? el.textContent : 'guest');
+// ============ FIRESTORE 데이터 저장/로드 ============
+// 캐시: Firestore 읽기 최소화
+let _userDataCache = null;
+
+function getUID() {
+  // Firebase module에서 직접 접근 불가하므로 전역 변수 사용
+  return window._firebaseUID || 'guest';
 }
 
-function loadUserData() {
+async function loadUserData() {
+  if (_userDataCache) return _userDataCache;
   try {
-    return JSON.parse(localStorage.getItem(getUserDataKey())) || { highestDay: 0, wrongWords: {} };
-  } catch { return { highestDay: 0, wrongWords: {} }; }
+    const uid = getUID();
+    if (uid === 'guest') return { highestDay: 0, wrongWords: {} };
+    const snap = await getDoc(doc(db, 'users', uid));
+    if (snap.exists()) {
+      _userDataCache = snap.data();
+      return _userDataCache;
+    }
+  } catch(e) { console.error('Firestore load error:', e); }
+  return { highestDay: 0, wrongWords: {} };
 }
 
-function saveUserData(data) {
-  localStorage.setItem(getUserDataKey(), JSON.stringify(data));
+async function saveUserData(data) {
+  _userDataCache = data;
+  try {
+    const uid = getUID();
+    if (uid === 'guest') return;
+    await setDoc(doc(db, 'users', uid), data);
+  } catch(e) { console.error('Firestore save error:', e); }
 }
 
 // 퀴즈 완료 시 진도 및 오답 저장
-function saveQuizResult() {
-  const data = loadUserData();
+async function saveQuizResult() {
+  const data = await loadUserData();
   // 최고 Day 갱신
   if (currentDay > data.highestDay) data.highestDay = currentDay;
   // 오답 저장 (기존 + 새 오답, 대소문자 무시 중복 제거)
+  if (!data.wrongWords) data.wrongWords = {};
   if (!data.wrongWords[currentDay]) data.wrongWords[currentDay] = [];
   const existing = new Set(data.wrongWords[currentDay].map(w => w.word.toLowerCase()));
   const uniqueWrong = [];
@@ -2061,7 +2078,7 @@ function saveQuizResult() {
     }
   });
   data.wrongWords[currentDay] = [...data.wrongWords[currentDay], ...uniqueWrong];
-  saveUserData(data);
+  await saveUserData(data);
 }
 
 // ============ MY PAGE ============
@@ -2072,7 +2089,7 @@ function openMyPage() {
   document.getElementById('quizArea').style.display = 'none';
   document.getElementById('resultArea').style.display = 'none';
   document.getElementById('myPageArea').style.display = 'block';
-  renderMyPage();
+  renderMyPage(); // async but fire-and-forget
 }
 
 function closeMyPage() {
@@ -2080,8 +2097,8 @@ function closeMyPage() {
   showHome();
 }
 
-function renderMyPage() {
-  const data = loadUserData();
+async function renderMyPage() {
+  const data = await loadUserData();
   const highest = data.highestDay || 0;
 
   // 진도율 게이지
@@ -2137,12 +2154,12 @@ function renderMyPage() {
   container.innerHTML = html;
 }
 
-function deleteWrongWord(day, index) {
-  const data = loadUserData();
+async function deleteWrongWord(day, index) {
+  const data = await loadUserData();
   if (data.wrongWords[day]) {
     data.wrongWords[day].splice(index, 1);
     if (data.wrongWords[day].length === 0) delete data.wrongWords[day];
-    saveUserData(data);
+    await saveUserData(data);
     renderMyPage();
   }
 }
@@ -2224,6 +2241,7 @@ function showCorrectEffect(wordText) {
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut, updateProfile, browserSessionPersistence, setPersistence } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js";
+import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyBc_xPkfYuPLrpMYwTxeUjbnu74Vgy8sCw",
@@ -2236,6 +2254,7 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
+const db = getFirestore(app);
 
 // 브라우저 탭/창 닫으면 자동 로그아웃 (세션 기반)
 setPersistence(auth, browserSessionPersistence);
@@ -2366,9 +2385,12 @@ function updateSidebarUser(user) {
 // 인증 상태 감지
 onAuthStateChanged(auth, (user) => {
   if (user) {
-    if (pendingNickname) return; // 닉네임 설정 중이면 대기
+    // UID를 전역에 저장 (Firestore 접근용)
+    window._firebaseUID = user.uid;
+    _userDataCache = null; // 캐시 초기화
+
+    if (pendingNickname) return;
     if (!user.displayName) {
-      // 닉네임 없는 기존 회원 → 닉네임 설정
       pendingNickname = true;
       document.getElementById('authCard').style.display = 'none';
       document.getElementById('nicknameCard').style.display = '';
@@ -2380,6 +2402,8 @@ onAuthStateChanged(auth, (user) => {
     updateSidebarUser(user);
     startLogoutTimer();
   } else {
+    window._firebaseUID = null;
+    _userDataCache = null;
     clearTimeout(logoutTimer);
     document.getElementById('authScreen').style.display = '';
     document.getElementById('authCard').style.display = '';
