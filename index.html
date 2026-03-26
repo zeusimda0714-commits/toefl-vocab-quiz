@@ -881,6 +881,105 @@
     letter-spacing: 1px;
   }
   .app-content { display: none; }
+
+  /* Progress Gauge */
+  .gauge-track {
+    position: relative;
+    height: 8px;
+    background: var(--purple-light);
+    border-radius: 4px;
+    margin: 20px 8px 30px;
+  }
+  .gauge-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--purple-accent), var(--purple-deep));
+    border-radius: 4px;
+    transition: width 0.6s ease;
+  }
+  .gauge-dots {
+    position: absolute;
+    top: 50%;
+    left: 0; right: 0;
+    transform: translateY(-50%);
+    display: flex;
+    justify-content: space-between;
+    padding: 0;
+  }
+  .gauge-dot {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: var(--purple-light);
+    border: 2px solid var(--border);
+    position: relative;
+    z-index: 1;
+    transition: all 0.3s;
+  }
+  .gauge-dot.filled {
+    background: var(--purple-deep);
+    border-color: var(--purple-deep);
+  }
+  .gauge-dot.current {
+    background: #fff;
+    border-color: var(--purple-deep);
+    box-shadow: 0 0 0 3px rgba(94,53,177,0.25);
+  }
+  .gauge-labels {
+    display: flex;
+    justify-content: space-between;
+    padding: 0 2px;
+    margin-top: 4px;
+  }
+  .gauge-label {
+    font-size: 0.6em;
+    color: var(--text-muted);
+    width: 14px;
+    text-align: center;
+  }
+  .gauge-label.filled { color: var(--purple-deep); font-weight: 700; }
+
+  /* Wrong Words Accordion */
+  .wrong-day-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+    background: var(--purple-light);
+    border-radius: 10px;
+    margin-bottom: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    color: var(--purple-dark);
+    font-size: 0.95em;
+  }
+  .wrong-day-header:hover { background: var(--purple-mid); color: #fff; }
+  .wrong-day-header .badge {
+    background: var(--wrong);
+    color: #fff;
+    font-size: 0.75em;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-weight: 700;
+  }
+  .wrong-day-list {
+    display: none;
+    padding: 0 4px 12px;
+  }
+  .wrong-day-list.open { display: block; }
+  .wrong-word-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 14px;
+    background: var(--purple-card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    margin-bottom: 6px;
+    font-size: 0.9em;
+  }
+  .wrong-word-item .ww-word { font-weight: 700; color: var(--purple-dark); }
+  .wrong-word-item .ww-meaning { color: var(--text-secondary); font-size: 0.88em; }
+  .no-wrong { text-align: center; color: var(--text-muted); padding: 20px; font-size: 0.9em; }
 </style>
 </head>
 <body>
@@ -936,7 +1035,10 @@
 <div class="sidebar" id="sidebar">
   <div class="sidebar-header">
     <div id="sidebarUserInfo" style="margin-bottom:12px;">
-      <div id="sidebarNickname" style="font-size:1.1em; font-weight:800; color:var(--purple-dark);"></div>
+      <div style="display:flex; align-items:center; justify-content:space-between; gap:8px;">
+        <div id="sidebarNickname" style="font-size:1.1em; font-weight:800; color:var(--purple-dark);"></div>
+        <button onclick="openMyPage(); toggleSidebar();" style="padding:5px 12px; background:var(--purple-deep); color:#fff; border:none; border-radius:8px; font-size:0.75em; font-weight:600; cursor:pointer; white-space:nowrap;">마이페이지</button>
+      </div>
       <div id="sidebarEmail" style="font-size:0.78em; color:var(--text-muted); margin-top:2px; word-break:break-all;"></div>
     </div>
     <p style="font-size:0.85em; color:var(--text-secondary);">Day를 선택하세요</p>
@@ -1023,6 +1125,28 @@
     </div>
     <div class="review-section" id="reviewSection"></div>
   </div>
+
+  <!-- My Page -->
+  <div id="myPageArea" style="display:none; padding:20px 0;">
+    <div class="quiz-header" style="border-bottom:none;">
+      <div class="quiz-title">마이페이지</div>
+      <div class="back-btn-wrap"><button class="back-btn" onclick="closeMyPage()" aria-label="뒤로가기">&#x2190;</button></div>
+    </div>
+
+    <!-- 진도율 게이지 -->
+    <div class="report-card" style="margin-bottom:20px;">
+      <div class="report-title">학습 진도율</div>
+      <div id="progressGauge" style="padding:10px 0;"></div>
+      <div id="progressSummary" style="text-align:center; font-size:0.9em; color:var(--text-secondary); margin-top:8px;"></div>
+    </div>
+
+    <!-- 오답 단어 -->
+    <div class="report-card">
+      <div class="report-title">오답 단어</div>
+      <div id="wrongWordsContainer"></div>
+    </div>
+  </div>
+
 </div>
 
 <script src="words_data.js"></script>
@@ -1746,6 +1870,7 @@ function checkType4(btn, selected, correct) {
 function showResult() {
   pushState('result');
   showResultView();
+  saveQuizResult(); // 진도 및 오답 저장
 }
 function showResultView() {
   document.getElementById('mainMenu').style.display = 'none';
@@ -1824,6 +1949,115 @@ function showResultView() {
 function firstMeaning(m) {
   return m.split(/[;\/]/)[0].trim();
 }
+
+// ============ USER DATA (localStorage) ============
+function getUserDataKey() {
+  // Firebase auth에서 UID를 가져올 수 없으므로 이메일 기반 키 사용
+  const el = document.getElementById('sidebarEmail');
+  return 'toefllab_' + (el ? el.textContent : 'guest');
+}
+
+function loadUserData() {
+  try {
+    return JSON.parse(localStorage.getItem(getUserDataKey())) || { highestDay: 0, wrongWords: {} };
+  } catch { return { highestDay: 0, wrongWords: {} }; }
+}
+
+function saveUserData(data) {
+  localStorage.setItem(getUserDataKey(), JSON.stringify(data));
+}
+
+// 퀴즈 완료 시 진도 및 오답 저장
+function saveQuizResult() {
+  const data = loadUserData();
+  // 최고 Day 갱신
+  if (currentDay > data.highestDay) data.highestDay = currentDay;
+  // 오답 저장 (기존 + 새 오답, 중복 제거)
+  if (!data.wrongWords[currentDay]) data.wrongWords[currentDay] = [];
+  const existing = new Set(data.wrongWords[currentDay].map(w => w.word));
+  const uniqueWrong = [];
+  wrongList.forEach(w => {
+    if (!existing.has(w.word)) { existing.add(w.word); uniqueWrong.push({ word: w.word, meaning: w.meaning }); }
+  });
+  data.wrongWords[currentDay] = [...data.wrongWords[currentDay], ...uniqueWrong];
+  saveUserData(data);
+}
+
+// ============ MY PAGE ============
+function openMyPage() {
+  document.getElementById('mainMenu').style.display = 'none';
+  document.getElementById('mainHeader').style.display = 'none';
+  document.getElementById('dayCloudWrapper').style.display = 'none';
+  document.getElementById('quizArea').style.display = 'none';
+  document.getElementById('resultArea').style.display = 'none';
+  document.getElementById('myPageArea').style.display = 'block';
+  renderMyPage();
+}
+
+function closeMyPage() {
+  document.getElementById('myPageArea').style.display = 'none';
+  showHome();
+}
+
+function renderMyPage() {
+  const data = loadUserData();
+  const highest = data.highestDay || 0;
+
+  // 진도율 게이지
+  let dotsHtml = '';
+  let labelsHtml = '';
+  for (let d = 1; d <= 30; d++) {
+    let cls = 'gauge-dot';
+    let lblCls = 'gauge-label';
+    if (d <= highest) { cls += ' filled'; lblCls += ' filled'; }
+    if (d === highest) cls += ' current';
+    dotsHtml += `<div class="${cls}"></div>`;
+    // 5의 배수만 숫자 표시
+    labelsHtml += `<div class="${lblCls}">${d % 5 === 0 || d === 1 ? d : ''}</div>`;
+  }
+  const pct = Math.round((highest / 30) * 100);
+  document.getElementById('progressGauge').innerHTML = `
+    <div class="gauge-track">
+      <div class="gauge-fill" style="width:${pct}%"></div>
+      <div class="gauge-dots">${dotsHtml}</div>
+    </div>
+    <div class="gauge-labels">${labelsHtml}</div>
+  `;
+  document.getElementById('progressSummary').textContent = highest > 0
+    ? `Day ${highest}까지 학습 완료 (${pct}%)`
+    : '아직 학습 기록이 없습니다.';
+
+  // 오답 단어
+  const container = document.getElementById('wrongWordsContainer');
+  const days = Object.keys(data.wrongWords).filter(d => data.wrongWords[d].length > 0).sort((a,b) => a - b);
+  if (days.length === 0) {
+    container.innerHTML = '<div class="no-wrong">오답 단어가 없습니다.</div>';
+    return;
+  }
+  let html = '';
+  days.forEach(day => {
+    const words = data.wrongWords[day];
+    html += `
+      <div class="wrong-day-header" onclick="this.nextElementSibling.classList.toggle('open')">
+        <span>Day ${day}</span>
+        <span class="badge">${words.length}개</span>
+      </div>
+      <div class="wrong-day-list">
+        ${words.map(w => `
+          <div class="wrong-word-item">
+            <span class="ww-word">${w.word}</span>
+            <span class="ww-meaning">${w.meaning}</span>
+          </div>
+        `).join('')}
+      </div>
+    `;
+  });
+  container.innerHTML = html;
+}
+
+// 전역 함수로 등록
+window.openMyPage = openMyPage;
+window.closeMyPage = closeMyPage;
 
 function escapeStr(s) {
   return s.replace(/'/g, "\\'").replace(/"/g, "&quot;");
