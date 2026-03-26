@@ -978,7 +978,17 @@
     font-size: 0.9em;
   }
   .wrong-word-item .ww-word { font-weight: 700; color: var(--purple-dark); }
-  .wrong-word-item .ww-meaning { color: var(--text-secondary); font-size: 0.88em; }
+  .wrong-word-item .ww-meaning { color: var(--text-secondary); font-size: 0.88em; flex: 1; text-align: right; margin: 0 10px; }
+  .wrong-word-item .ww-delete {
+    color: var(--text-muted);
+    cursor: pointer;
+    font-size: 0.85em;
+    padding: 4px 6px;
+    border-radius: 6px;
+    transition: all 0.15s;
+    flex-shrink: 0;
+  }
+  .wrong-word-item .ww-delete:hover { color: var(--wrong); background: var(--wrong-bg); }
   .no-wrong { text-align: center; color: var(--text-muted); padding: 20px; font-size: 0.9em; }
 </style>
 </head>
@@ -2059,10 +2069,11 @@ function renderMyPage() {
         <span class="badge">${words.length}개</span>
       </div>
       <div class="wrong-day-list">
-        ${words.map(w => `
+        ${words.map((w, i) => `
           <div class="wrong-word-item">
             <span class="ww-word">${w.word}</span>
             <span class="ww-meaning">${w.meaning}</span>
+            <span class="ww-delete" onclick="deleteWrongWord(${day}, ${i})">&#x2715;</span>
           </div>
         `).join('')}
       </div>
@@ -2071,9 +2082,20 @@ function renderMyPage() {
   container.innerHTML = html;
 }
 
+function deleteWrongWord(day, index) {
+  const data = loadUserData();
+  if (data.wrongWords[day]) {
+    data.wrongWords[day].splice(index, 1);
+    if (data.wrongWords[day].length === 0) delete data.wrongWords[day];
+    saveUserData(data);
+    renderMyPage();
+  }
+}
+
 // 전역 함수로 등록
 window.openMyPage = openMyPage;
 window.closeMyPage = closeMyPage;
+window.deleteWrongWord = deleteWrongWord;
 
 function escapeStr(s) {
   return s.replace(/'/g, "\\'").replace(/"/g, "&quot;");
