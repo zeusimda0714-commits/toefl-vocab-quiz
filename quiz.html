@@ -887,18 +887,29 @@
 
 <!-- ============ AUTH SCREEN ============ -->
 <div class="auth-screen" id="authScreen">
-  <div class="auth-card">
+  <!-- 로그인/회원가입 카드 -->
+  <div class="auth-card" id="authCard">
     <div class="auth-logo">THE TOEFL LAB</div>
     <h1 id="authTitle">Login</h1>
     <p class="auth-sub" id="authSub">계정에 로그인하세요</p>
     <div class="auth-error" id="authError"></div>
     <input type="email" id="authEmail" placeholder="이메일" autocomplete="email">
-    <input type="password" id="authPassword" placeholder="비밀번호 (6자 이상)" autocomplete="current-password">
+    <input type="password" id="authPassword" placeholder="비밀번호 (8자 이상, 영문+특수문자)" autocomplete="current-password">
+    <div class="auth-hint" id="authHint" style="font-size:0.78em; color:var(--text-muted); text-align:left; margin-bottom:12px; display:none;">비밀번호: 8자 이상, 영문과 특수문자를 포함해야 합니다.</div>
     <button class="auth-btn" id="authBtn" onclick="handleAuth()">로그인</button>
     <div class="auth-toggle">
       <span id="authToggleText">계정이 없으신가요?</span>
       <a onclick="toggleAuthMode()" id="authToggleLink">회원가입</a>
     </div>
+  </div>
+  <!-- 닉네임 설정 카드 -->
+  <div class="auth-card" id="nicknameCard" style="display:none;">
+    <div class="auth-logo">THE TOEFL LAB</div>
+    <h1>Welcome!</h1>
+    <p class="auth-sub">사용할 닉네임을 입력하세요</p>
+    <div class="auth-error" id="nicknameError"></div>
+    <input type="text" id="nicknameInput" placeholder="닉네임" maxlength="20">
+    <button class="auth-btn" onclick="saveNickname()">시작하기</button>
   </div>
 </div>
 
@@ -924,8 +935,11 @@
 <!-- Sidebar -->
 <div class="sidebar" id="sidebar">
   <div class="sidebar-header">
-    <h2>TOEFL Vocabulary</h2>
-    <p>Day를 선택하세요</p>
+    <div id="sidebarUserInfo" style="margin-bottom:12px;">
+      <div id="sidebarNickname" style="font-size:1.1em; font-weight:800; color:var(--purple-dark);"></div>
+      <div id="sidebarEmail" style="font-size:0.78em; color:var(--text-muted); margin-top:2px; word-break:break-all;"></div>
+    </div>
+    <p style="font-size:0.85em; color:var(--text-secondary);">Day를 선택하세요</p>
   </div>
   <div class="sidebar-list" id="sidebarList"></div>
   <div style="padding:16px 20px; border-top:1px solid var(--border);">
@@ -1882,7 +1896,7 @@ function showCorrectEffect(wordText) {
 <!-- Firebase Auth -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js";
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut, updateProfile } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyBc_xPkfYuPLrpMYwTxeUjbnu74Vgy8sCw",
@@ -1897,6 +1911,15 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 
 let isSignUp = false;
+let pendingNickname = false; // 회원가입 후 닉네임 설정 대기
+
+// 비밀번호 검증: 8자 이상, 영문 포함, 특수문자 포함
+function validatePassword(pw) {
+  if (pw.length < 8) return '비밀번호는 8자 이상이어야 합니다.';
+  if (!/[a-zA-Z]/.test(pw)) return '비밀번호에 영문자가 포함되어야 합니다.';
+  if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?`~]/.test(pw)) return '비밀번호에 특수문자가 포함되어야 합니다.';
+  return null;
+}
 
 window.toggleAuthMode = function() {
   isSignUp = !isSignUp;
@@ -1906,6 +1929,7 @@ window.toggleAuthMode = function() {
   document.getElementById('authToggleText').textContent = isSignUp ? '이미 계정이 있으신가요?' : '계정이 없으신가요?';
   document.getElementById('authToggleLink').textContent = isSignUp ? '로그인' : '회원가입';
   document.getElementById('authError').textContent = '';
+  document.getElementById('authHint').style.display = isSignUp ? 'block' : 'none';
 };
 
 window.handleAuth = async function() {
@@ -1919,16 +1943,27 @@ window.handleAuth = async function() {
     return;
   }
 
+  // 회원가입 시 비밀번호 검증
+  if (isSignUp) {
+    const pwError = validatePassword(password);
+    if (pwError) { errorEl.textContent = pwError; return; }
+  }
+
   try {
     if (isSignUp) {
       await createUserWithEmailAndPassword(auth, email, password);
+      // 회원가입 성공 → 닉네임 설정 화면 표시
+      pendingNickname = true;
+      document.getElementById('authCard').style.display = 'none';
+      document.getElementById('nicknameCard').style.display = '';
+      document.getElementById('nicknameInput').focus();
     } else {
       await signInWithEmailAndPassword(auth, email, password);
     }
   } catch (error) {
     const messages = {
       'auth/email-already-in-use': '이미 사용 중인 이메일입니다.',
-      'auth/weak-password': '비밀번호는 6자 이상이어야 합니다.',
+      'auth/weak-password': '비밀번호는 8자 이상이어야 합니다.',
       'auth/invalid-email': '올바른 이메일 형식이 아닙니다.',
       'auth/user-not-found': '등록되지 않은 이메일입니다.',
       'auth/wrong-password': '비밀번호가 일치하지 않습니다.',
@@ -1939,6 +1974,30 @@ window.handleAuth = async function() {
   }
 };
 
+// 닉네임 저장
+window.saveNickname = async function() {
+  const nickname = document.getElementById('nicknameInput').value.trim();
+  const errorEl = document.getElementById('nicknameError');
+  if (!nickname) { errorEl.textContent = '닉네임을 입력하세요.'; return; }
+  if (nickname.length > 20) { errorEl.textContent = '닉네임은 20자 이하여야 합니다.'; return; }
+
+  try {
+    await updateProfile(auth.currentUser, { displayName: nickname });
+    pendingNickname = false;
+    // 앱 진입
+    document.getElementById('authScreen').style.display = 'none';
+    document.getElementById('appContent').style.display = 'block';
+    updateSidebarUser(auth.currentUser);
+  } catch (e) {
+    errorEl.textContent = '오류가 발생했습니다. 다시 시도하세요.';
+  }
+};
+
+// 닉네임 입력에서 Enter
+document.getElementById('nicknameInput').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') window.saveNickname();
+});
+
 // Enter 키로 로그인/가입
 document.getElementById('authPassword').addEventListener('keydown', (e) => {
   if (e.key === 'Enter') window.handleAuth();
@@ -1947,14 +2006,35 @@ document.getElementById('authEmail').addEventListener('keydown', (e) => {
   if (e.key === 'Enter') document.getElementById('authPassword').focus();
 });
 
+// 사이드바에 유저 정보 표시
+function updateSidebarUser(user) {
+  const nick = user.displayName || '사용자';
+  const email = user.email || '';
+  document.getElementById('sidebarNickname').textContent = nick;
+  document.getElementById('sidebarEmail').textContent = email;
+}
+
 // 인증 상태 감지
 onAuthStateChanged(auth, (user) => {
   if (user) {
+    if (pendingNickname) return; // 닉네임 설정 중이면 대기
+    if (!user.displayName) {
+      // 닉네임 없는 기존 회원 → 닉네임 설정
+      pendingNickname = true;
+      document.getElementById('authCard').style.display = 'none';
+      document.getElementById('nicknameCard').style.display = '';
+      document.getElementById('nicknameInput').focus();
+      return;
+    }
     document.getElementById('authScreen').style.display = 'none';
     document.getElementById('appContent').style.display = 'block';
+    updateSidebarUser(user);
   } else {
     document.getElementById('authScreen').style.display = '';
+    document.getElementById('authCard').style.display = '';
+    document.getElementById('nicknameCard').style.display = 'none';
     document.getElementById('appContent').style.display = 'none';
+    pendingNickname = false;
   }
 });
 
