@@ -1226,22 +1226,12 @@ const engDistractorPools = {
 };
 
 // 한글 의미로 영단어 품사 판별
-function getEngPOS(meaning) {
-  const m = meaning.split(/[;\/]/)[0].trim();
-  if (m.endsWith('하다') || m.endsWith('되다') || m.endsWith('시키다') || m.endsWith('다')) return 'verb';
-  if (m.endsWith('적인') || m.endsWith('한') || m.endsWith('는') || m.endsWith('의') ||
-      m.endsWith('든') || m.endsWith('운') || m.endsWith('없는') || m.endsWith('춘') ||
-      m.endsWith('아닌') || m.endsWith('른')) return 'adj';
-  if (m.endsWith('게') || m.endsWith('로') || m.endsWith('게도') || m.endsWith('라서')) return 'adv';
-  return 'noun';
-}
-
 function generateSentences(dayWords) {
   return dayWords.map(w => {
-    const pos = getEngPOS(w.meaning);
+    const pos = getPOSGroup(w.meaning);
     const pool = engDistractorPools[pos] || engDistractorPools.noun;
     // 같은 품사의 단어들에서 오답 선택 (같은 Day 단어 + 외부 풀)
-    const samePOS = dayWords.filter(o => o.word !== w.word && getEngPOS(o.meaning) === pos).map(o => o.word);
+    const samePOS = dayWords.filter(o => o.word !== w.word && getPOSGroup(o.meaning) === pos).map(o => o.word);
     const combined = [...pool, ...samePOS].sort(() => Math.random() - 0.5);
     const seen = new Set([w.word.toLowerCase()]);
     const distractors = [];
@@ -1570,47 +1560,70 @@ const distractorByPattern = {
 };
 
 // Detect the ending pattern of a Korean meaning
-function getPattern(meaning) {
-  const m = meaning.split(';')[0].trim();
-
-  if (m.endsWith('게도')) return '게도';
-  if (m.endsWith('라서')) return '라서';
-  if (m.endsWith('시키다')) return '시키다';
-  if (m.endsWith('해지다') || m.endsWith('되다')) return '되다';
-  if (m.endsWith('하다')) return '하다';
-  if (m.endsWith('적인')) return '적인';
-  if (m.endsWith('없는')) return '없는';
-  if (m.endsWith('아닌')) return '아닌';
-  if (m.endsWith('러운') || m.endsWith('로운') || m.endsWith('스러운')) return '운';
-  if (m.endsWith('의')) return '의';
-  if (m.endsWith('한')) return '한';
-  if (m.endsWith('는')) return '는';
-  if (m.endsWith('게')) return '게';
-  if (m.endsWith('으로') || m.endsWith('로')) return '로';
-  if (m.endsWith('든') || m.endsWith('춘') || m.endsWith('른')) return 'short_adj';
-  if (m.length <= 4 && (m.endsWith('된') || m.endsWith('진') || m.endsWith('난'))) return 'short_adj';
-  // Catch all verbs ending in 다 (주다, 빌다, 올라가다 등)
-  if (m.endsWith('다')) return 'verb_short';
+// 한글 의미로 품사 그룹 판별 (verb / adj / noun / adv)
+function getPOSGroup(meaning) {
+  const m = meaning.split(/[;\/]/)[0].trim();
+  // 동사
+  if (m.endsWith('하다') || m.endsWith('되다') || m.endsWith('시키다') || m.endsWith('해지다')) return 'verb';
+  if (m.endsWith('다') && !m.endsWith('없다')) return 'verb';
+  // 부사
+  if (m.endsWith('게') || m.endsWith('게도') || m.endsWith('으로') || m.endsWith('로') || m.endsWith('라서') || m.endsWith('히') || m.endsWith('적으로')) return 'adv';
+  // 형용사
+  if (m.endsWith('한') || m.endsWith('적인') || m.endsWith('는') || m.endsWith('의') || m.endsWith('없는') ||
+      m.endsWith('운') || m.endsWith('러운') || m.endsWith('로운') || m.endsWith('스러운') ||
+      m.endsWith('든') || m.endsWith('춘') || m.endsWith('른') || m.endsWith('아닌') ||
+      m.endsWith('된') || m.endsWith('진') || m.endsWith('난')) return 'adj';
   return 'noun';
 }
 
+// 품사 그룹별 한글 오답 풀
+const korDistractorByPOS = {
+  verb: [
+    "축소하다","방해하다","촉진하다","왜곡하다","억제하다","변형하다","유발하다","강화하다",
+    "포착하다","간과하다","파괴하다","해석하다","분류하다","취소하다","탐구하다","묘사하다",
+    "극복하다","예측하다","반박하다","수용하다","거부하다","축적하다","통합하다","복원하다",
+    "훼손하다","전달하다","비교하다","대체하다","선언하다","회피하다","활용하다","보존하다",
+    "주다","빌다","올라가다","내려가다","잡다","놓다","열다","닫다","걷다","이끌다","쌓다"
+  ],
+  adj: [
+    "모호한","명백한","미묘한","막대한","취약한","견고한","현저한","광범위한",
+    "치밀한","탁월한","평범한","심각한","중대한","불규칙한","일시적인","영구적인",
+    "자발적인","독창적인","체계적인","근본적인","압도적인","점진적인","필수적인","치명적인",
+    "굳은","지친","거친","높은","낮은","넓은","좁은","두꺼운","얇은","빠른","느린",
+    "부드러운","거무스름한","아름다운","토착의","전체의","고유의","순수한","비범한",
+    "눈에 띄는","퍼지는","비할 데 없는","성장이 멈춘","돌이킬 수 없는"
+  ],
+  noun: [
+    "균열","잔재","격차","맥락","범주","절차","체계","원리","구조","양상",
+    "동향","추세","쟁점","함의","전환","속성","관점","기준","근거","토대",
+    "여파","정점","지표","유산","경향","수단","요인","변수","전제","난관",
+    "파급","흐름","표본","본질","현상","개념","귀결","결합","윤곽","기둥",
+    "침입","모순된 말","결과"
+  ],
+  adv: [
+    "점차적으로","즉각적으로","궁극적으로","부분적으로","전반적으로","간헐적으로",
+    "지속적으로","일시적으로","현저하게","암묵적으로","명시적으로","자발적으로",
+    "필연적으로","근본적으로","압도적으로","점진적으로","단계적으로","획기적으로",
+    "일관되게","불가피하게","신속하게","반대로","표면적으로","몹시 놀랍게도","잇따라서"
+  ]
+};
+
 function getDistractors(correctWord) {
-  let pattern = getPattern(correctWord.meaning);
-  // verb_short uses the same pool as 하다 verbs
-  const poolKey = (pattern === 'verb_short') ? 'verb_short' : pattern;
-  const pool = distractorByPattern[poolKey] || distractorByPattern['noun'];
-  // Gather same-pattern meanings from word list
-  const samePattern = words
-    .filter(w => w.word !== correctWord.word && getPattern(w.meaning) === pattern)
-    .map(w => w.meaning);
-  const combined = shuffle([...pool, ...samePattern]);
+  const pos = getPOSGroup(correctWord.meaning);
+  const pool = korDistractorByPOS[pos] || korDistractorByPOS.noun;
+  // 같은 품사의 단어 목록에서도 가져옴
+  const samePOS = words
+    .filter(w => w.word !== correctWord.word && getPOSGroup(w.meaning) === pos)
+    .map(w => firstMeaning(w.meaning));
+  const combined = shuffle([...pool, ...samePOS]);
   const seen = new Set();
-  // Exclude all sub-meanings of the correct answer
-  correctWord.meaning.split(';').forEach(m => seen.add(m.trim()));
+  correctWord.meaning.split(/[;\/]/).forEach(m => seen.add(m.trim()));
   seen.add(correctWord.meaning);
+  seen.add(firstMeaning(correctWord.meaning));
   const result = [];
   for (const m of combined) {
-    if (!seen.has(m)) { seen.add(m); result.push(m); }
+    const fm = firstMeaning(m);
+    if (!seen.has(fm)) { seen.add(fm); result.push(fm); }
     if (result.length >= 3) break;
   }
   return result;
