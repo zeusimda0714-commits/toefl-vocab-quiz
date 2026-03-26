@@ -1896,7 +1896,7 @@ function showCorrectEffect(wordText) {
 <!-- Firebase Auth -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut, updateProfile } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js";
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut, updateProfile, browserSessionPersistence, setPersistence } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyBc_xPkfYuPLrpMYwTxeUjbnu74Vgy8sCw",
@@ -1909,6 +1909,28 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
+
+// 브라우저 탭/창 닫으면 자동 로그아웃 (세션 기반)
+setPersistence(auth, browserSessionPersistence);
+
+// 3시간 자동 로그아웃 타이머
+const AUTO_LOGOUT_MS = 3 * 60 * 60 * 1000; // 3시간
+let logoutTimer = null;
+function startLogoutTimer() {
+  clearTimeout(logoutTimer);
+  logoutTimer = setTimeout(() => {
+    if (auth.currentUser) {
+      signOut(auth);
+      alert('장시간 사용하지 않아 자동 로그아웃되었습니다.');
+    }
+  }, AUTO_LOGOUT_MS);
+}
+// 사용자 활동 시 타이머 리셋
+['click','keydown','touchstart'].forEach(evt => {
+  document.addEventListener(evt, () => {
+    if (auth.currentUser) startLogoutTimer();
+  }, { passive: true });
+});
 
 let isSignUp = false;
 let pendingNickname = false; // 회원가입 후 닉네임 설정 대기
@@ -2029,7 +2051,9 @@ onAuthStateChanged(auth, (user) => {
     document.getElementById('authScreen').style.display = 'none';
     document.getElementById('appContent').style.display = 'block';
     updateSidebarUser(user);
+    startLogoutTimer();
   } else {
+    clearTimeout(logoutTimer);
     document.getElementById('authScreen').style.display = '';
     document.getElementById('authCard').style.display = '';
     document.getElementById('nicknameCard').style.display = 'none';
