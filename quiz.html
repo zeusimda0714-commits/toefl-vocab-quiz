@@ -796,9 +796,114 @@
       right: 0;
     }
   }
+
+  /* Auth Screen */
+  .auth-screen {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: var(--purple-bg);
+    padding: 20px;
+  }
+  .auth-card {
+    background: var(--purple-card);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 40px 36px;
+    max-width: 400px;
+    width: 100%;
+    box-shadow: 0 4px 20px rgba(94,53,177,0.1);
+    text-align: center;
+  }
+  .auth-card h1 {
+    font-size: 1.8em;
+    font-weight: 900;
+    color: var(--purple-dark);
+    margin-bottom: 4px;
+  }
+  .auth-card .auth-sub {
+    font-size: 0.9em;
+    color: var(--text-muted);
+    margin-bottom: 28px;
+  }
+  .auth-card input {
+    width: 100%;
+    padding: 14px 16px;
+    border: 2px solid var(--border);
+    border-radius: 12px;
+    font-size: 1em;
+    outline: none;
+    margin-bottom: 12px;
+    transition: border-color 0.2s;
+    background: #fff;
+    color: var(--text-primary);
+  }
+  .auth-card input:focus { border-color: var(--purple-accent); }
+  .auth-card .auth-btn {
+    width: 100%;
+    padding: 14px;
+    background: linear-gradient(135deg, var(--purple-accent), var(--purple-deep));
+    color: #fff;
+    border: none;
+    border-radius: 12px;
+    font-size: 1.05em;
+    font-weight: 700;
+    cursor: pointer;
+    transition: opacity 0.2s;
+    margin-top: 4px;
+  }
+  .auth-card .auth-btn:hover { opacity: 0.85; }
+  .auth-card .auth-toggle {
+    margin-top: 18px;
+    font-size: 0.88em;
+    color: var(--text-secondary);
+  }
+  .auth-card .auth-toggle a {
+    color: var(--purple-accent);
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+  }
+  .auth-card .auth-toggle a:hover { text-decoration: underline; }
+  .auth-error {
+    color: var(--wrong);
+    font-size: 0.85em;
+    margin-bottom: 12px;
+    min-height: 1.2em;
+  }
+  .auth-card .auth-logo {
+    font-size: 1em;
+    font-weight: 900;
+    color: var(--purple-deep);
+    margin-bottom: 20px;
+    letter-spacing: 1px;
+  }
+  .app-content { display: none; }
 </style>
 </head>
 <body>
+
+<!-- ============ AUTH SCREEN ============ -->
+<div class="auth-screen" id="authScreen">
+  <div class="auth-card">
+    <div class="auth-logo">THE TOEFL LAB</div>
+    <h1 id="authTitle">Login</h1>
+    <p class="auth-sub" id="authSub">계정에 로그인하세요</p>
+    <div class="auth-error" id="authError"></div>
+    <input type="email" id="authEmail" placeholder="이메일" autocomplete="email">
+    <input type="password" id="authPassword" placeholder="비밀번호 (6자 이상)" autocomplete="current-password">
+    <button class="auth-btn" id="authBtn" onclick="handleAuth()">로그인</button>
+    <div class="auth-toggle">
+      <span id="authToggleText">계정이 없으신가요?</span>
+      <a onclick="toggleAuthMode()" id="authToggleLink">회원가입</a>
+    </div>
+  </div>
+</div>
+
+<!-- ============ APP CONTENT ============ -->
+<div class="app-content" id="appContent">
 
 <!-- Mobile Top Bar (모바일 전용) -->
 <div class="mobile-topbar" id="mobileTopbar">
@@ -823,6 +928,9 @@
     <p>Day를 선택하세요</p>
   </div>
   <div class="sidebar-list" id="sidebarList"></div>
+  <div style="padding:16px 20px; border-top:1px solid var(--border);">
+    <button onclick="logoutUser()" style="width:100%; padding:12px; background:none; border:1px solid var(--border); border-radius:10px; color:var(--text-secondary); font-size:0.9em; cursor:pointer;">로그아웃</button>
+  </div>
 </div>
 
 <!-- Desktop Top Bar (container 밖, 전체 너비) -->
@@ -1767,6 +1875,93 @@ function showCorrectEffect(wordText) {
   }
   setTimeout(() => container.remove(), 1300);
 }
+</script>
+
+</div><!-- /app-content -->
+
+<!-- Firebase Auth -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBc_xPkfYuPLrpMYwTxeUjbnu74Vgy8sCw",
+  authDomain: "the-toefl-lab.firebaseapp.com",
+  projectId: "the-toefl-lab",
+  storageBucket: "the-toefl-lab.firebasestorage.app",
+  messagingSenderId: "203311336831",
+  appId: "1:203311336831:web:38382be619822bff6ede4a"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+
+let isSignUp = false;
+
+window.toggleAuthMode = function() {
+  isSignUp = !isSignUp;
+  document.getElementById('authTitle').textContent = isSignUp ? 'Sign Up' : 'Login';
+  document.getElementById('authSub').textContent = isSignUp ? '새 계정을 만드세요' : '계정에 로그인하세요';
+  document.getElementById('authBtn').textContent = isSignUp ? '회원가입' : '로그인';
+  document.getElementById('authToggleText').textContent = isSignUp ? '이미 계정이 있으신가요?' : '계정이 없으신가요?';
+  document.getElementById('authToggleLink').textContent = isSignUp ? '로그인' : '회원가입';
+  document.getElementById('authError').textContent = '';
+};
+
+window.handleAuth = async function() {
+  const email = document.getElementById('authEmail').value.trim();
+  const password = document.getElementById('authPassword').value;
+  const errorEl = document.getElementById('authError');
+  errorEl.textContent = '';
+
+  if (!email || !password) {
+    errorEl.textContent = '이메일과 비밀번호를 입력하세요.';
+    return;
+  }
+
+  try {
+    if (isSignUp) {
+      await createUserWithEmailAndPassword(auth, email, password);
+    } else {
+      await signInWithEmailAndPassword(auth, email, password);
+    }
+  } catch (error) {
+    const messages = {
+      'auth/email-already-in-use': '이미 사용 중인 이메일입니다.',
+      'auth/weak-password': '비밀번호는 6자 이상이어야 합니다.',
+      'auth/invalid-email': '올바른 이메일 형식이 아닙니다.',
+      'auth/user-not-found': '등록되지 않은 이메일입니다.',
+      'auth/wrong-password': '비밀번호가 일치하지 않습니다.',
+      'auth/invalid-credential': '이메일 또는 비밀번호가 올바르지 않습니다.',
+      'auth/too-many-requests': '너무 많은 시도입니다. 잠시 후 다시 시도하세요.'
+    };
+    errorEl.textContent = messages[error.code] || '오류가 발생했습니다. 다시 시도하세요.';
+  }
+};
+
+// Enter 키로 로그인/가입
+document.getElementById('authPassword').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') window.handleAuth();
+});
+document.getElementById('authEmail').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') document.getElementById('authPassword').focus();
+});
+
+// 인증 상태 감지
+onAuthStateChanged(auth, (user) => {
+  if (user) {
+    document.getElementById('authScreen').style.display = 'none';
+    document.getElementById('appContent').style.display = 'block';
+  } else {
+    document.getElementById('authScreen').style.display = '';
+    document.getElementById('appContent').style.display = 'none';
+  }
+});
+
+// 로그아웃 함수 (전역)
+window.logoutUser = function() {
+  signOut(auth);
+};
 </script>
 </body>
 </html>
