@@ -1885,8 +1885,11 @@ function checkType4(btn, selected, correct) {
     showCorrectEffect(correct);
   } else {
     btn.classList.add('wrong');
-    const w = words.find(w => w.word === correct);
+    // Type 4: quizWords에서 현재 문제 객체를 가져와 words에서 매칭
+    const qw = quizWords[currentIndex];
+    const w = words.find(x => x.word.toLowerCase() === correct.toLowerCase());
     if (w) wrongList.push(w);
+    else if (qw) wrongList.push({ word: qw.word, meaning: qw.meaning, synonyms: qw.synonyms || [] });
   }
   document.getElementById('scoreText').textContent = `${score}점`;
   document.getElementById('nextBtn').style.display = 'block';
@@ -1999,12 +2002,16 @@ function saveQuizResult() {
   const data = loadUserData();
   // 최고 Day 갱신
   if (currentDay > data.highestDay) data.highestDay = currentDay;
-  // 오답 저장 (기존 + 새 오답, 중복 제거)
+  // 오답 저장 (기존 + 새 오답, 대소문자 무시 중복 제거)
   if (!data.wrongWords[currentDay]) data.wrongWords[currentDay] = [];
-  const existing = new Set(data.wrongWords[currentDay].map(w => w.word));
+  const existing = new Set(data.wrongWords[currentDay].map(w => w.word.toLowerCase()));
   const uniqueWrong = [];
   wrongList.forEach(w => {
-    if (!existing.has(w.word)) { existing.add(w.word); uniqueWrong.push({ word: w.word, meaning: w.meaning }); }
+    if (w && w.word && !existing.has(w.word.toLowerCase())) {
+      existing.add(w.word.toLowerCase());
+      const meaning = w.meaning || '';
+      uniqueWrong.push({ word: w.word, meaning: firstMeaning(meaning) });
+    }
   });
   data.wrongWords[currentDay] = [...data.wrongWords[currentDay], ...uniqueWrong];
   saveUserData(data);
