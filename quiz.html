@@ -1373,6 +1373,7 @@ function showHome() {
   document.getElementById('dayCloudWrapper').style.display = '';
   document.getElementById('quizArea').style.display = 'none';
   document.getElementById('resultArea').style.display = 'none';
+  document.getElementById('myPageArea').style.display = 'none';
 }
 
 function goHome() {
@@ -1415,6 +1416,7 @@ function showQuizView() {
   document.getElementById('mainHeader').style.display = 'none';
   document.getElementById('dayCloudWrapper').style.display = 'none';
   document.getElementById('resultArea').style.display = 'none';
+  document.getElementById('myPageArea').style.display = 'none';
   document.getElementById('quizArea').style.display = 'block';
   const titles = { 1:"📝 한글 의미 맞추기", 2:"🔗 동의어 매칭", 3:"⌨️ 스펠링 테스트", 4:"📖 단어 찾기" };
   document.getElementById('quizTitle').textContent = titles[currentType];
@@ -1876,6 +1878,7 @@ function showResultView() {
   document.getElementById('mainMenu').style.display = 'none';
   document.getElementById('mainHeader').style.display = 'none';
   document.getElementById('quizArea').style.display = 'none';
+  document.getElementById('myPageArea').style.display = 'none';
   document.getElementById('resultArea').style.display = 'block';
 
   const pct = Math.round((score / totalQ) * 100);
