@@ -1166,7 +1166,7 @@
 let words = allDayWords[1]; // current day's words
 
 // ============ SIDEBAR & DAY NAVIGATION ============
-let currentDay = 1;
+var currentDay = 1;
 
 function toggleSidebar() {
   document.getElementById('sidebar').classList.toggle('open');
@@ -1265,7 +1265,7 @@ let currentIndex = 0;
 let score = 0;
 let totalQ = 0;
 let quizWords = [];
-let wrongList = [];
+var wrongList = [];
 let answered = false;
 
 // For matching
@@ -1736,7 +1736,7 @@ function showMatchRound() {
   matchedCount = 0;
   const group = matchPairs[matchRound];
   const leftItems = group.map(w => ({ word: w.word, id: w.word }));
-  const rightItems = shuffle(group.map(w => ({ synonym: w.synonyms[0], id: w.word })));
+  const rightItems = shuffle(group.map(w => ({ synonym: (w.synonyms && w.synonyms[0]) || w.word, id: w.word })));
 
   const done = matchPairs.slice(0, matchRound).reduce((a, g) => a + g.length, 0);
   updateProgress(done + group.length, matchTotal, matchScore);
@@ -1946,7 +1946,7 @@ function checkType4(btn, selected, correct) {
 function showResult() {
   pushState('result');
   showResultView();
-  saveQuizResult(); // 진도 및 오답 저장
+  saveQuizResult().catch(e => console.error('Save failed:', e)); // 진도 및 오답 저장
 }
 function showResultView() {
   document.getElementById('mainMenu').style.display = 'none';
@@ -1955,9 +1955,9 @@ function showResultView() {
   document.getElementById('myPageArea').style.display = 'none';
   document.getElementById('resultArea').style.display = 'block';
 
-  const pct = Math.round((score / totalQ) * 100);
+  const pct = totalQ > 0 ? Math.round((score / totalQ) * 100) : 0;
   const wrongCount = totalQ - score;
-  const wrongPct = Math.round((wrongCount / totalQ) * 100);
+  const wrongPct = totalQ > 0 ? Math.round((wrongCount / totalQ) * 100) : 0;
 
   document.getElementById('resultScore').textContent = `${pct}%`;
   document.getElementById('resultLabel').textContent = '정답률';
@@ -2027,58 +2027,13 @@ function firstMeaning(m) {
   return m.split(/[;\/]/)[0].trim();
 }
 
-// ============ USER DATA (localStorage) ============
-// ============ FIRESTORE 데이터 저장/로드 ============
-// 캐시: Firestore 읽기 최소화
-let _userDataCache = null;
+// ============ FIRESTORE 데이터 함수는 module script로 이동됨 ============
+// loadUserData, saveUserData, saveQuizResult, getUID 는 window.* 로 접근
 
-function getUID() {
-  // Firebase module에서 직접 접근 불가하므로 전역 변수 사용
-  return window._firebaseUID || 'guest';
-}
-
-async function loadUserData() {
-  if (_userDataCache) return _userDataCache;
-  try {
-    const uid = getUID();
-    if (uid === 'guest') return { highestDay: 0, wrongWords: {} };
-    const snap = await getDoc(doc(db, 'users', uid));
-    if (snap.exists()) {
-      _userDataCache = snap.data();
-      return _userDataCache;
-    }
-  } catch(e) { console.error('Firestore load error:', e); }
-  return { highestDay: 0, wrongWords: {} };
-}
-
-async function saveUserData(data) {
-  _userDataCache = data;
-  try {
-    const uid = getUID();
-    if (uid === 'guest') return;
-    await setDoc(doc(db, 'users', uid), data);
-  } catch(e) { console.error('Firestore save error:', e); }
-}
-
-// 퀴즈 완료 시 진도 및 오답 저장
-async function saveQuizResult() {
-  const data = await loadUserData();
-  // 최고 Day 갱신
-  if (currentDay > data.highestDay) data.highestDay = currentDay;
-  // 오답 저장 (기존 + 새 오답, 대소문자 무시 중복 제거)
-  if (!data.wrongWords) data.wrongWords = {};
-  if (!data.wrongWords[currentDay]) data.wrongWords[currentDay] = [];
-  const existing = new Set(data.wrongWords[currentDay].map(w => w.word.toLowerCase()));
-  const uniqueWrong = [];
-  wrongList.forEach(w => {
-    if (w && w.word && !existing.has(w.word.toLowerCase())) {
-      existing.add(w.word.toLowerCase());
-      const meaning = w.meaning || '';
-      uniqueWrong.push({ word: w.word, meaning: firstMeaning(meaning) });
-    }
-  });
-  data.wrongWords[currentDay] = [...data.wrongWords[currentDay], ...uniqueWrong];
-  await saveUserData(data);
+function escapeHtml(str) {
+  const d = document.createElement('div');
+  d.appendChild(document.createTextNode(str));
+  return d.innerHTML;
 }
 
 // ============ MY PAGE ============
@@ -2143,8 +2098,8 @@ async function renderMyPage() {
       <div class="wrong-day-list">
         ${words.map((w, i) => `
           <div class="wrong-word-item">
-            <span class="ww-word">${w.word}</span>
-            <span class="ww-meaning">${w.meaning}</span>
+            <span class="ww-word">${escapeHtml(w.word)}</span>
+            <span class="ww-meaning">${escapeHtml(w.meaning)}</span>
             <span class="ww-delete" onclick="deleteWrongWord(${day}, ${i})">&#x2715;</span>
           </div>
         `).join('')}
@@ -2256,8 +2211,64 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
+// ============ FIRESTORE 데이터 저장/로드 ============
+let _userDataCache = null;
+
+function getUID() {
+  return window._firebaseUID || 'guest';
+}
+
+async function loadUserData() {
+  if (_userDataCache) return _userDataCache;
+  try {
+    const uid = getUID();
+    if (uid === 'guest') return { highestDay: 0, wrongWords: {} };
+    const snap = await getDoc(doc(db, 'users', uid));
+    if (snap.exists()) {
+      _userDataCache = snap.data();
+      return _userDataCache;
+    }
+  } catch(e) { console.error('Firestore load error:', e); }
+  return { highestDay: 0, wrongWords: {} };
+}
+
+async function saveUserData(data) {
+  _userDataCache = data;
+  try {
+    const uid = getUID();
+    if (uid === 'guest') return;
+    await setDoc(doc(db, 'users', uid), data);
+  } catch(e) { console.error('Firestore save error:', e); }
+}
+
+async function saveQuizResult() {
+  const data = await loadUserData();
+  const _currentDay = window.currentDay;
+  const _wrongList = window.wrongList;
+  if (_currentDay > data.highestDay) data.highestDay = _currentDay;
+  if (!data.wrongWords) data.wrongWords = {};
+  if (!data.wrongWords[_currentDay]) data.wrongWords[_currentDay] = [];
+  const existing = new Set(data.wrongWords[_currentDay].map(w => w.word.toLowerCase()));
+  const uniqueWrong = [];
+  _wrongList.forEach(w => {
+    if (w && w.word && !existing.has(w.word.toLowerCase())) {
+      existing.add(w.word.toLowerCase());
+      const meaning = w.meaning || '';
+      uniqueWrong.push({ word: w.word, meaning: window.firstMeaning(meaning) });
+    }
+  });
+  data.wrongWords[_currentDay] = [...data.wrongWords[_currentDay], ...uniqueWrong];
+  await saveUserData(data);
+}
+
+// Expose Firestore functions to regular script
+window.loadUserData = loadUserData;
+window.saveUserData = saveUserData;
+window.saveQuizResult = saveQuizResult;
+window.getUID = getUID;
+
 // 브라우저 탭/창 닫으면 자동 로그아웃 (세션 기반)
-setPersistence(auth, browserSessionPersistence);
+await setPersistence(auth, browserSessionPersistence);
 
 // 3시간 자동 로그아웃 타이머
 const AUTO_LOGOUT_MS = 3 * 60 * 60 * 1000; // 3시간
