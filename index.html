@@ -1812,6 +1812,33 @@ function showType3() {
   pushState('quiz-q');
   showType3Question();
 }
+// 스펠링 힌트 생성: 랜덤 위치에 2~3글자 보여주기
+function generateSpellHint(word) {
+  const len = word.length;
+  if (len <= 2) return word;
+  const showCount = Math.random() < 0.5 ? 2 : 3; // 2개 또는 3개
+  // 랜덤 시작 위치 선택 (앞/중간/뒤 골고루)
+  const positions = [];
+  // 시작 위치 후보: 앞부분, 중간, 뒷부분
+  const startOptions = [
+    0,
+    Math.max(0, Math.floor(len / 2) - 1),
+    Math.max(0, len - showCount)
+  ];
+  const start = startOptions[Math.floor(Math.random() * startOptions.length)];
+  const actualShow = Math.min(showCount, len);
+  for (let i = start; i < start + actualShow && i < len; i++) {
+    positions.push(i);
+  }
+  let hint = '';
+  for (let i = 0; i < len; i++) {
+    if (word[i] === ' ') hint += ' ';
+    else if (positions.includes(i)) hint += word[i];
+    else hint += '_';
+  }
+  return hint;
+}
+
 function showType3Question() {
   document.getElementById('nextBtn').style.display = 'none';
   updateProgress(currentIndex + 1, totalQ, score);
@@ -1826,10 +1853,20 @@ function showType3Question() {
       <input type="text" class="spell-input" id="spellInput" placeholder="영단어를 입력하세요..." autocomplete="off" autocapitalize="off" onkeydown="if(event.key==='Enter')checkType3()">
       <button class="submit-btn" onclick="checkType3()">확인</button>
     </div>
+    <div style="display:flex; align-items:center; gap:8px; margin-top:10px;">
+      <button onclick="showSpellHint()" style="padding:6px 14px; background:var(--purple-light); border:1px solid var(--border); border-radius:8px; color:var(--purple-deep); font-size:0.85em; font-weight:600; cursor:pointer;">힌트</button>
+      <span id="hintDisplay" style="font-family:monospace; font-size:1.1em; letter-spacing:3px; color:var(--purple-deep); font-weight:700;"></span>
+    </div>
     <div class="hint-text" id="hintText"></div>
   `;
   document.getElementById('questionContainer').innerHTML = html;
   setTimeout(() => document.getElementById('spellInput').focus(), 100);
+}
+
+function showSpellHint() {
+  const q = quizWords[currentIndex];
+  const hint = generateSpellHint(q.word);
+  document.getElementById('hintDisplay').textContent = hint;
 }
 
 function checkType3() {
