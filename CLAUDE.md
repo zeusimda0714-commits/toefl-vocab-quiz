@@ -42,7 +42,7 @@ voca/
 
 ## Key Features
 
-- **4 quiz types**: Korean→English, English→Korean, Spelling, Matching
+- **5 quiz types**: Korean→English, English→Korean, Spelling, Matching, Mixed Spelling (headword + synonyms)
 - **User auth**: Email/password signup and login via Firebase Auth
 - **Progress tracking**: Per-day quiz completion stored in Firestore
 - **Wrong words**: Bookmarking and reviewing incorrect answers
